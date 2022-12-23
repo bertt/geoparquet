@@ -12,6 +12,7 @@ public class Tests
     {
         var reader = await GeoParquetReader.ReadGeoParquet("testfixtures/gemeenten2016.parquet");
         var dataFields = reader.GeoParquetReader.Schema.GetDataFields();
+        Assert.IsTrue(dataFields.Length == 36);
         var geoParquetMetaData = reader.GeoParquetMetadata;
         Assert.IsTrue(geoParquetMetaData.version == "0.4.0");
         Assert.IsTrue(geoParquetMetaData.primary_column == "geometry");
