@@ -6,6 +6,8 @@ https://geoparquet.org/
 
 https://getindata.com/blog/introducing-geoparquet-data-format/
 
+NuGet: https://www.nuget.org/packages/bertt.geoparquet/
+
 ## Sample code
 
 Reading:
