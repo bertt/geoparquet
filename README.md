@@ -6,6 +6,8 @@ https://geoparquet.org/
 
 https://getindata.com/blog/introducing-geoparquet-data-format/
 
+Blog about GeoParquet: https://bertt.wordpress.com/2022/12/20/geoparquet-geospatial-vector-data-using-apache-parquet/
+
 NuGet: https://www.nuget.org/packages/bertt.geoparquet/
 
 ## Sample code
@@ -39,6 +41,18 @@ todo
 Schema used: 
 
 https://github.com/opengeospatial/geoparquet/blob/main/format-specs/schema.json
+
+# Roadmap
+
+- add writing geoParquet file;
+
+- generate geo metadata classes from json schema;
+
+- add conversion methods (to/from NTS);
+
+- add (spatial) filters;
+
+- add read from cloud provider.
 
 ## History
 
