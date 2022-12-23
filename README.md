@@ -1,6 +1,6 @@
 # GeoParquet
 
-.NET 6 Reader/Writer library form GeoParquet files.
+.NET 6 Reader/Writer library for GeoParquet files.
 
 https://geoparquet.org/
 
