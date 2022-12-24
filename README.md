@@ -40,7 +40,7 @@ todo
 
 Schema used: 
 
-https://github.com/opengeospatial/geoparquet/blob/main/format-specs/schema.json
+https://geoparquet.org/releases/v1.0.0-beta.1/schema.json
 
 # Roadmap
 
