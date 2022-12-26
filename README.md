@@ -15,13 +15,17 @@ NuGet: https://www.nuget.org/packages/bertt.geoparquet/
 Reading:
 
 ```
-// read the GeoParquet file
+// 0] read the GeoParquet file
 var geoParquetHolder = await GeoParquetReader.Read("testfixtures/gemeenten2016.parquet");
         
 // 1] get the ParquetReader
 var parquetReader = geoParquetHolder.GeoParquetReader;
 var dataFields = parquetReader.Schema.GetDataFields();
 Assert.That(dataFields.Length == 36);
+var reader = parquetReader.OpenRowGroupReader(0);
+var firstColumn = await reader.ReadColumnAsync(dataFields[3]);
+Assert.That(firstColumn.Data.Length == 391);
+Assert.That((string)firstColumn.Data.GetValue(0) == "Appingedam");
 
 // 2] get the GeoParquet metadata
 var geoParquet = geoParquetHolder.GeoParquet;
