@@ -46,7 +46,7 @@ todo
 
 ## Dependencies
 
-- Newtonsoft.JSON 9
+- Newtonsoft.JSON 13
 
 - Parquet.Net 4 https://github.com/aloneguid/parquet-dotnet
 
