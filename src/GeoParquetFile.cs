@@ -1,12 +1,12 @@
 ﻿using Parquet;
 
-namespace geoparquet;
+namespace GeoParquet;
 public class GeoParquetFile
 {
-    public GeoParquetMetadata GeoParquetMetadata { get; }
+    public GeoParquet GeoParquetMetadata { get; }
     public ParquetReader GeoParquetReader { get; }
 
-    public GeoParquetFile(GeoParquetMetadata geoParquetMetadata, ParquetReader geoParquetReader)
+    public GeoParquetFile(GeoParquet geoParquetMetadata, ParquetReader geoParquetReader)
     {
         GeoParquetMetadata = geoParquetMetadata;
         GeoParquetReader = geoParquetReader;
