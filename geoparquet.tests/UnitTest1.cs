@@ -7,7 +7,9 @@ public class Tests
     [Test]
     public async Task Test1()
     {
+        // read the GeoParquet file
         var geoParquetHolder = await GeoParquetReader.Read("testfixtures/gemeenten2016.parquet");
+        
         // 1] get the ParquetReader
         var parquetReader = geoParquetHolder.GeoParquetReader;
         var dataFields = parquetReader.Schema.GetDataFields();
