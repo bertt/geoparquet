@@ -4,7 +4,7 @@ using Parquet;
 namespace GeoParquet;
 public class GeoParquetReader
 {
-    public static async Task<GeoParquetHolder> ReadGeoParquet(string file)
+    public static async Task<GeoParquetHolder> Read(string file)
     {
         var fileStream = File.OpenRead(file);
         var parquetReader = await ParquetReader.CreateAsync(fileStream);

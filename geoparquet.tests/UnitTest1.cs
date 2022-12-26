@@ -7,10 +7,14 @@ public class Tests
     [Test]
     public async Task Test1()
     {
-        var reader = await GeoParquetReader.ReadGeoParquet("testfixtures/gemeenten2016.parquet");
-        var dataFields = reader.GeoParquetReader.Schema.GetDataFields();
+        var geoParquetHolder = await GeoParquetReader.Read("testfixtures/gemeenten2016.parquet");
+        // 1] get the ParquetReader
+        var parquetReader = geoParquetHolder.GeoParquetReader;
+        var dataFields = parquetReader.Schema.GetDataFields();
         Assert.That(dataFields.Length == 36);
-        var geoParquet = reader.GeoParquet;
+
+        // 2] get the GeoParquet metadata
+        var geoParquet = geoParquetHolder.GeoParquet;
         Assert.That(geoParquet.Version == "0.4.0");
         Assert.That(geoParquet.Primary_column == "geometry");
         Assert.That(geoParquet.Columns.Count == 1);
