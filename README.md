@@ -19,7 +19,7 @@ Reading:
 var geoParquetHolder = await GeoParquetReader.Read("testfixtures/gemeenten2016.parquet");
         
 // 1] get the ParquetReader
-var parquetReader = geoParquetHolder.GeoParquetReader;
+var parquetReader = geoParquetHolder.ParquetReader;
 var dataFields = parquetReader.Schema.GetDataFields();
 Assert.That(dataFields.Length == 36);
 var reader = parquetReader.OpenRowGroupReader(0);

@@ -4,12 +4,12 @@ namespace GeoParquet;
 public class GeoParquetHolder
 {
     public GeoParquet GeoParquet { get; }
-    public ParquetReader GeoParquetReader { get; }
+    public ParquetReader ParquetReader { get; }
 
-    public GeoParquetHolder(GeoParquet geoParquetMetadata, ParquetReader geoParquetReader)
+    public GeoParquetHolder(GeoParquet geoParquetMetadata, ParquetReader parquetReader)
     {
         GeoParquet = geoParquetMetadata;
-        GeoParquetReader = geoParquetReader;
+        ParquetReader = parquetReader;
     }
 }
 
