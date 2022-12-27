@@ -1,7 +1,9 @@
+using Apache.Arrow.Ipc;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json.Linq;
 using Parquet;
+using System.Diagnostics;
 
 namespace GeoParquet.Tests;
 
@@ -44,6 +46,21 @@ public class Tests
     }
 
     [Test]
+    public async Task ReadGeoParquetWithArrowEncodingFile()
+    {
+        var file = "testfixtures/gemeenten2016_0.4_arrow.parquet";
+        var fileStream = File.OpenRead(file);
+        var parquetReader = await ParquetReader.CreateAsync(fileStream);
+        var reader = parquetReader.OpenRowGroupReader(0);
+        var dataFields = parquetReader.Schema.GetDataFields();
+        var geometryColumn = await reader.ReadColumnAsync(dataFields[35]);
+        var val = (double)geometryColumn.Data.GetValue(0);
+        // contains a list of doubles (arrow?)
+        Assert.That(val == 6.8319922331647964);
+    }
+
+
+    [Test]
     public async Task ReadGeoParquet10File()
     {
         var file = "testfixtures/gemeenten2016_1.0.parquet";
@@ -54,4 +71,6 @@ public class Tests
         // next line fails??
         // var nameColumn = await reader.ReadColumnAsync(dataFields[33]);
     }
+
+
 }
