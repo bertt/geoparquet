@@ -33,12 +33,6 @@
                 "pattern": "^(GeometryCollection|(Multi)?(Point|LineString|Polygon))( Z)?$"
               }
             },
-            "crs": {
-              "oneOf": [
-                { "$ref": "https://proj.org/schemas/v0.5/projjson.schema.json" },
-                { "type": "null" }
-              ]
-            },
             "edges": {
               "type": "string",
               "enum": [ "planar", "spherical" ]

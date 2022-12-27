@@ -10,7 +10,7 @@ public class Tests
     public async Task Test1()
     {
         // 0] read the GeoParquet file
-        var (parquetReader, geoParquet) = await GeoParquetReader.Read("testfixtures/gemeenten2016.parquet");
+        var (parquetReader, geoParquet) = await GeoParquetReader.Read("testfixtures/gemeenten2016_0.4.parquet");
         var dataFields = parquetReader.Schema.GetDataFields();
         Assert.That(dataFields.Length == 36);
         var reader = parquetReader.OpenRowGroupReader(0);
@@ -36,7 +36,6 @@ public class Tests
         var geometryWkb = (byte[])geometryColumn.Data.GetValue(0);
         var wkbReader = new WKBReader();
         var multiPolygon = (MultiPolygon)wkbReader.Read(geometryWkb);
-
         Assert.That(multiPolygon.Coordinates.Count() == 165);
     }
 }
