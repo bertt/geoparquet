@@ -2,7 +2,6 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json.Linq;
 using Parquet;
-using System.IO;
 
 namespace GeoParquet.Tests;
 
@@ -25,7 +24,7 @@ public class Tests
         Assert.That((string)nameColumn.Data.GetValue(0) == "Appingedam");
 
         // 2] Use the GeoParquet metadata
-        var geoParquet = GeoParquetReader.GetGeoMetadata(parquetReader);
+        var geoParquet = parquetReader.GetGeoMetadata();
         Assert.That(geoParquet.Version == "0.4.0");
         Assert.That(geoParquet.Primary_column == "geometry");
         Assert.That(geoParquet.Columns.Count == 1);
@@ -55,5 +54,4 @@ public class Tests
         // next line fails??
         // var nameColumn = await reader.ReadColumnAsync(dataFields[33]);
     }
-
 }

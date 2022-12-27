@@ -14,6 +14,8 @@ NuGet: https://www.nuget.org/packages/bertt.geoparquet/
 
 Reading:
 
+There is a ParquetReader extension method 'GetGeoMetadata()' to obtain the Geo metadata:
+
 ```
 // 0] read the GeoParquet file
 var file = "testfixtures/gemeenten2016_0.4.parquet";
@@ -29,7 +31,7 @@ Assert.That(nameColumn.Data.Length == 391);
 Assert.That((string)nameColumn.Data.GetValue(0) == "Appingedam");
 
 // 2] Use the GeoParquet metadata
-var geoParquet = GeoParquetReader.GetGeoMetadata(parquetReader);
+var geoParquet = parquetReader.GetGeoMetadata();
 Assert.That(geoParquet.Version == "0.4.0");
 Assert.That(geoParquet.Primary_column == "geometry");
 Assert.That(geoParquet.Columns.Count == 1);

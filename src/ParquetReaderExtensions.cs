@@ -2,9 +2,9 @@
 using Parquet;
 
 namespace GeoParquet;
-public class GeoParquetReader
+public static class ParquetReaderExtensions
 {
-    public static GeoParquet GetGeoMetadata(ParquetReader parquetReader)
+    public static GeoParquet GetGeoMetadata(this ParquetReader parquetReader)
     {
         var geoMetaData = parquetReader.CustomMetadata.First().Value;
         var geoParquet = JsonConvert.DeserializeObject<GeoParquet>(geoMetaData);
