@@ -4,9 +4,9 @@
 
 https://geoparquet.org/
 
-https://getindata.com/blog/introducing-geoparquet-data-format/
+Specification: https://github.com/opengeospatial/geoparquet/blob/main/format-specs/geoparquet.md
 
-Blog about GeoParquet: https://bertt.wordpress.com/2022/12/20/geoparquet-geospatial-vector-data-using-apache-parquet/
+Blog: https://bertt.wordpress.com/2022/12/20/geoparquet-geospatial-vector-data-using-apache-parquet/
 
 NuGet: https://www.nuget.org/packages/bertt.geoparquet/
 
