@@ -16,7 +16,9 @@ Reading:
 
 ```
 // 0] read the GeoParquet file
-var (parquetReader, geoParquet) = await GeoParquetReader.Read("testfixtures/gemeenten2016.parquet");
+var file = "testfixtures/gemeenten2016_0.4.parquet";
+var fileStream = File.OpenRead(file);
+var parquetReader = await ParquetReader.CreateAsync(fileStream);
 var dataFields = parquetReader.Schema.GetDataFields();
 Assert.That(dataFields.Length == 36);
 var reader = parquetReader.OpenRowGroupReader(0);
@@ -27,6 +29,7 @@ Assert.That(nameColumn.Data.Length == 391);
 Assert.That((string)nameColumn.Data.GetValue(0) == "Appingedam");
 
 // 2] Use the GeoParquet metadata
+var geoParquet = GeoParquetReader.GetGeoMetadata(parquetReader);
 Assert.That(geoParquet.Version == "0.4.0");
 Assert.That(geoParquet.Primary_column == "geometry");
 Assert.That(geoParquet.Columns.Count == 1);
@@ -71,9 +74,9 @@ GeoParquet metadata classes are generated from JSON schema using NJsonSchema.Cod
 
 # Roadmap
 
-- add writing geoParquet file;
+- Add support for 1.0
 
-- add conversion methods (to/from NTS);
+- add writing geoParquet file;
 
 - add (spatial) filters;
 

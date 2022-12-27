@@ -1,6 +1,8 @@
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json.Linq;
+using Parquet;
+using System.IO;
 
 namespace GeoParquet.Tests;
 
@@ -10,7 +12,9 @@ public class Tests
     public async Task Test1()
     {
         // 0] read the GeoParquet file
-        var (parquetReader, geoParquet) = await GeoParquetReader.Read("testfixtures/gemeenten2016_0.4.parquet");
+        var file = "testfixtures/gemeenten2016_0.4.parquet";
+        var fileStream = File.OpenRead(file);
+        var parquetReader = await ParquetReader.CreateAsync(fileStream);
         var dataFields = parquetReader.Schema.GetDataFields();
         Assert.That(dataFields.Length == 36);
         var reader = parquetReader.OpenRowGroupReader(0);
@@ -21,6 +25,7 @@ public class Tests
         Assert.That((string)nameColumn.Data.GetValue(0) == "Appingedam");
 
         // 2] Use the GeoParquet metadata
+        var geoParquet = GeoParquetReader.GetGeoMetadata(parquetReader);
         Assert.That(geoParquet.Version == "0.4.0");
         Assert.That(geoParquet.Primary_column == "geometry");
         Assert.That(geoParquet.Columns.Count == 1);
@@ -38,4 +43,17 @@ public class Tests
         var multiPolygon = (MultiPolygon)wkbReader.Read(geometryWkb);
         Assert.That(multiPolygon.Coordinates.Count() == 165);
     }
+
+    [Test]
+    public async Task ReadGeoParquet10File()
+    {
+        var file = "testfixtures/gemeenten2016_1.0.parquet";
+        var fileStream = File.OpenRead(file);
+        var parquetReader = await ParquetReader.CreateAsync(fileStream);
+        var reader = parquetReader.OpenRowGroupReader(0);
+        var dataFields = parquetReader.Schema.GetDataFields();
+        // next line fails??
+        // var nameColumn = await reader.ReadColumnAsync(dataFields[33]);
+    }
+
 }
