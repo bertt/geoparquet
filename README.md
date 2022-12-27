@@ -17,14 +17,14 @@ Reading:
 ```
 // 0] read the GeoParquet file
 var (parquetReader, geoParquet) = await GeoParquetReader.Read("testfixtures/gemeenten2016.parquet");
-        
-// 1] Use the ParquetReader
 var dataFields = parquetReader.Schema.GetDataFields();
 Assert.That(dataFields.Length == 36);
 var reader = parquetReader.OpenRowGroupReader(0);
-var firstColumn = await reader.ReadColumnAsync(dataFields[3]);
-Assert.That(firstColumn.Data.Length == 391);
-Assert.That((string)firstColumn.Data.GetValue(0) == "Appingedam");
+
+// 1] Use the ParquetReader to read table
+var nameColumn = await reader.ReadColumnAsync(dataFields[3]);
+Assert.That(nameColumn.Data.Length == 391);
+Assert.That((string)nameColumn.Data.GetValue(0) == "Appingedam");
 
 // 2] Use the GeoParquet metadata
 Assert.That(geoParquet.Version == "0.4.0");
@@ -36,6 +36,13 @@ Assert.That(geomColumn?["orientation"].ToString() == "counterclockwise");
 Assert.That(geomColumn?["geometry_type"].ToString() == "MultiPolygon");
 var bbox = (JArray)geomColumn?["bbox"];
 Assert.That(bbox?.Count == 4);
+
+// 3] Use the geometry column (WKB) to create NetTopologySuite geometry
+var geometryColumn = await reader.ReadColumnAsync(dataFields[35]);
+var geometryWkb = (byte[])geometryColumn.Data.GetValue(0);
+var wkbReader = new WKBReader();
+var multiPolygon = (MultiPolygon)wkbReader.Read(geometryWkb);
+Assert.That(multiPolygon.Coordinates.Count() == 165);
 ```
 
 Writing: 
