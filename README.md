@@ -86,5 +86,7 @@ GeoParquet metadata classes are generated from JSON schema using NJsonSchema.Cod
 
 ## History
 
+2022-12-27: version 0.2 - add extension method to read geo metadata
+
 2022-12-23: initial 0.1 version implementing reader
 

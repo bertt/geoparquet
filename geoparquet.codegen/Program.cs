@@ -6,6 +6,8 @@ using NJsonSchema.CodeGeneration.CSharp;
 // - https://geoparquet.org/releases/v1.0.0-beta.1/schema.json
 // we will use 0.4 now because gdal does not convert (yet) to 1.0
 var json = File.ReadAllText("./v0.4.0/schema.json");
+// var json = File.ReadAllText("./1.0.0-beta.1/schema.json");
+
 
 // there is one manual action: remove crs from schema because too complex
 /*       "crs": {

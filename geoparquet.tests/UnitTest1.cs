@@ -71,6 +71,4 @@ public class Tests
         // next line fails??
         // var nameColumn = await reader.ReadColumnAsync(dataFields[33]);
     }
-
-
 }
