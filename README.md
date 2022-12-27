@@ -16,10 +16,9 @@ Reading:
 
 ```
 // 0] read the GeoParquet file
-var geoParquetHolder = await GeoParquetReader.Read("testfixtures/gemeenten2016.parquet");
+var (parquetReader, geoParquet) = await GeoParquetReader.Read("testfixtures/gemeenten2016.parquet");
         
-// 1] get the ParquetReader
-var parquetReader = geoParquetHolder.GeoParquetReader;
+// 1] Use the ParquetReader
 var dataFields = parquetReader.Schema.GetDataFields();
 Assert.That(dataFields.Length == 36);
 var reader = parquetReader.OpenRowGroupReader(0);
@@ -27,8 +26,7 @@ var firstColumn = await reader.ReadColumnAsync(dataFields[3]);
 Assert.That(firstColumn.Data.Length == 391);
 Assert.That((string)firstColumn.Data.GetValue(0) == "Appingedam");
 
-// 2] get the GeoParquet metadata
-var geoParquet = geoParquetHolder.GeoParquet;
+// 2] Use the GeoParquet metadata
 Assert.That(geoParquet.Version == "0.4.0");
 Assert.That(geoParquet.Primary_column == "geometry");
 Assert.That(geoParquet.Columns.Count == 1);
