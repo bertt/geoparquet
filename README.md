@@ -131,7 +131,7 @@ GeoParquet metadata classes are generated from JSON schema using NJsonSchema.Cod
 
 - Add support for 1.0
 
-- add writing geoParquet file;
+- add Apache Arrow encoding for geometries
 
 - add (spatial) filters;
 
