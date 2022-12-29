@@ -90,11 +90,6 @@ public class Tests
     [Test]
     public async Task TestWriteGeoParquetFile()
     {
-        //create data columns with schema metadata and the data you need
-        var idColumn = new DataColumn(
-            new DataField<int>("id"),
-            new int[] { 1, 2 });
-
         var cityColumn = new DataColumn(
             new DataField<string>("city"),
             new string[] { "London", "Derby" });
@@ -108,19 +103,14 @@ public class Tests
             new DataField<byte[]>("geometry"),
             new byte[][] { wkbWriter.Write(geom0), wkbWriter.Write(geom1) });
 
+        var schema = new Schema(cityColumn.Field, wkbColumn.Field);
 
-        // create file schema
-        var schema = new Schema(idColumn.Field, cityColumn.Field, wkbColumn.Field);
-
-        //using (var stream = File.OpenWrite(@"d:\aaa\test100.parquet"))
-        using (var stream = new MemoryStream())
+        using (var stream = File.OpenWrite(@"writing_sample.parquet"))
         {
             using (ParquetWriter parquetWriter = await ParquetWriter.CreateAsync(schema, stream))
             {
-                // create a new row group in the file
                 using (ParquetRowGroupWriter groupWriter = parquetWriter.CreateRowGroup())
                 {
-                    await groupWriter.WriteColumnAsync(idColumn);
                     await groupWriter.WriteColumnAsync(cityColumn);
                     await groupWriter.WriteColumnAsync(wkbColumn);
                 }

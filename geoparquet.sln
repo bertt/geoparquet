@@ -14,7 +14,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "docs", "docs", "{10627DE0-A
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{92F55511-779D-4EE5-B0BB-03E374B2C1E3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "geoparquet.codegen", "geoparquet.codegen\geoparquet.codegen.csproj", "{66E7D036-F63B-46D4-AB4C-69EC1E21C437}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "geoparquet.codegen", "geoparquet.codegen\geoparquet.codegen.csproj", "{66E7D036-F63B-46D4-AB4C-69EC1E21C437}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -18,7 +18,7 @@
     <Company />
     <PackageId>bertt.geoparquet</PackageId>
     <Title>bertt.geoparquet</Title>
-    <Version>0.2</Version>
+    <Version>0.3</Version>
     <Authors>Bert Temme</Authors>
   </PropertyGroup>
 
