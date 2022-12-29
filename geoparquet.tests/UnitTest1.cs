@@ -115,7 +115,7 @@ public class Tests
                     await groupWriter.WriteColumnAsync(wkbColumn);
                 }
 
-                parquetWriter.SetGeoMetadata("geometry", "Point", new double[] {  3.3583782525105832,
+                parquetWriter.SetGeoMetadata("Point", new double[] {  3.3583782525105832,
                   50.750367484598314,
                   7.2274984508458306,
                   53.555014517907608});

@@ -14,9 +14,11 @@ NuGet: https://www.nuget.org/packages/bertt.geoparquet/
 
 In this package there are two extension methods for handling the geo metadata:
 
-1] ParquetReader extension method 'GetGeoMetadata()' to obtain the Geo metadata
+1] ParquetReader extension method GetGeoMetadata() to obtain the Geo metadata
 
-2] ParquetWriter extension method SetGeoMetadata(string geometry_column, string geometry_type, double[] bbox)
+2] ParquetWriter extension method SetGeoMetadata(string geometry_type, double[] bbox, string geometry_colum="geometry")
+
+geometry_type can be one of  Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, GeometryCollection.
 
 See sample code below for reading/writing samples/
 
@@ -98,7 +100,7 @@ using (var stream = File.OpenWrite(@"writing_sample.parquet"))
             await groupWriter.WriteColumnAsync(wkbColumn);
         }
 
-        parquetWriter.SetGeoMetadata("geometry", "Point", new double[] {  3.3583782525105832,
+        parquetWriter.SetGeoMetadata("Point", new double[] {  3.3583782525105832,
             50.750367484598314,
             7.2274984508458306,
             53.555014517907608});
@@ -138,6 +140,8 @@ GeoParquet metadata classes are generated from JSON schema using NJsonSchema.Cod
 - add (spatial) filters;
 
 ## History
+
+2022-12-30: version 0.3.1 - make geometry column name optional in SetGeoMetadata
 
 2022-12-30: version 0.3 - add extension method to write geo metadata
 

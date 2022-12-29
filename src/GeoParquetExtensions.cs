@@ -12,7 +12,7 @@ public static class GeoParquetExtensions
         return geoParquet;
     }
 
-    public static void SetGeoMetadata(this ParquetWriter parquetWriter, string geometry_column, string geometry_type, double[] bbox)
+    public static void SetGeoMetadata(this ParquetWriter parquetWriter, string geometry_type, double[] bbox, string geometry_column="geometry")
     {
         var parquet = new GeoParquet();
         parquet.Version = "0.4.0";
