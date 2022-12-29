@@ -70,7 +70,7 @@ Use extension method 'parquetWriter.SetGeoMetadata', store the geometries as WKB
 
 Result Parquet file can be visualized in QGIS:
 
-
+![image](https://user-images.githubusercontent.com/538812/210020220-b89da098-0877-45bd-87f2-8285941bf697.png)
 
 ```
 var cityColumn = new DataColumn(
