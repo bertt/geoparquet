@@ -10,11 +10,25 @@ Blog: https://bertt.wordpress.com/2022/12/20/geoparquet-geospatial-vector-data-u
 
 NuGet: https://www.nuget.org/packages/bertt.geoparquet/
 
+## Architecture
+
+In this package there are two extension methods for handling the geo metadata:
+
+1] ParquetReader extension method 'GetGeoMetadata()' to obtain the Geo metadata
+
+2] ParquetWriter extension method SetGeoMetadata(string geometry_column, string geometry_type, double[] bbox)
+
+See sample code below for reading/writing samples/
+
 ## Sample code
 
-Reading:
+In these samples NetTopolgySuite is used for handling geometries, but any library that can handle 
+WKB geometries can be used.
 
-There is a ParquetReader extension method 'GetGeoMetadata()' to obtain the Geo metadata:
+### Reading:
+
+Use extension method 'parquetReader.GetGeoMetadata()':
+
 
 ```
 // 0] read the GeoParquet file
@@ -50,9 +64,48 @@ var multiPolygon = (MultiPolygon)wkbReader.Read(geometryWkb);
 Assert.That(multiPolygon.Coordinates.Count() == 165);
 ```
 
-Writing: 
+### Writing 
 
-todo 
+Use extension method 'parquetWriter.SetGeoMetadata', store the geometries as WKB.
+
+Result Parquet file can be visualized in QGIS:
+
+
+
+```
+var cityColumn = new DataColumn(
+    new DataField<string>("city"),
+    new string[] { "London", "Derby" });
+
+var geom0 = new Point(5, 51);
+var geom1 = new Point(5.5, 51);
+
+var wkbWriter = new WKBWriter();
+
+var wkbColumn = new DataColumn(
+    new DataField<byte[]>("geometry"),
+    new byte[][] { wkbWriter.Write(geom0), wkbWriter.Write(geom1) });
+
+var schema = new Schema(cityColumn.Field, wkbColumn.Field);
+
+using (var stream = File.OpenWrite(@"writing_sample.parquet"))
+{
+    using (ParquetWriter parquetWriter = await ParquetWriter.CreateAsync(schema, stream))
+    {
+        using (ParquetRowGroupWriter groupWriter = parquetWriter.CreateRowGroup())
+        {
+            await groupWriter.WriteColumnAsync(cityColumn);
+            await groupWriter.WriteColumnAsync(wkbColumn);
+        }
+
+        parquetWriter.SetGeoMetadata("geometry", "Point", new double[] {  3.3583782525105832,
+            50.750367484598314,
+            7.2274984508458306,
+            53.555014517907608});
+    }
+}
+```
+
 
 ## Dependencies
 
@@ -85,6 +138,8 @@ GeoParquet metadata classes are generated from JSON schema using NJsonSchema.Cod
 - add read from cloud provider.
 
 ## History
+
+2022-12-30: version 0.3 - add extension method to write geo metadata
 
 2022-12-27: version 0.2 - add extension method to read geo metadata
 

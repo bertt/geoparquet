@@ -1,13 +1,13 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <FileVersion>0.2</FileVersion>
-    <AssemblyVersion>0.2</AssemblyVersion>
-    <PackageReleaseNotes>version 0.1</PackageReleaseNotes>
+    <FileVersion>0.3</FileVersion>
+    <AssemblyVersion>0.3</AssemblyVersion>
+    <PackageReleaseNotes>version 0.3</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/bertt/geoparquet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageTags>parquet, geoparquet, wkb</PackageTags>
