@@ -22,7 +22,7 @@ See sample code below for reading/writing samples/
 
 ## Sample code
 
-In these samples NetTopolgySuite is used for handling geometries, but any library that can handle 
+In these samples NetTopologySuite (https://github.com/NetTopologySuite/NetTopologySuite) is used for handling geometries, but any library that can handle 
 WKB geometries can be used.
 
 ### Reading:
