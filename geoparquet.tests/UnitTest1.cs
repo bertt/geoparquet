@@ -1,32 +1,38 @@
-using Apache.Arrow.Ipc;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using Newtonsoft.Json.Linq;
-using Parquet;
-using Parquet.Data;
+using ParquetSharp;
 
 namespace GeoParquet.Tests;
 
 public class Tests
 {
     [Test]
-    public async Task ReaderParquet04Test()
+    public void ReaderParquetSharp04ArrowTest()
+    {
+        var file = "testfixtures/gemeenten2016_0.4_arrow.parquet";
+        var file1 = new ParquetFileReader(file);
+        var rowGroupReader = file1.RowGroup(0);
+        var groupNumRows = (int)rowGroupReader.MetaData.NumRows;
+        var geometryColumn = rowGroupReader.Column(35).LogicalReader<Double?[][][][]>().ReadAll(groupNumRows);
+        var firstArrowGeom = geometryColumn[0];
+        Assert.That(firstArrowGeom[0][0].Length == 165);
+    }
+
+    [Test]
+    public void ReaderParquetSharp04Test()
     {
         // 0] read the GeoParquet file
         var file = "testfixtures/gemeenten2016_0.4.parquet";
-        var fileStream = File.OpenRead(file);
-        var parquetReader = await ParquetReader.CreateAsync(fileStream);
-        var dataFields = parquetReader.Schema.GetDataFields();
-        Assert.That(dataFields.Length == 36);
-        var reader = parquetReader.OpenRowGroupReader(0);
+        var parquetFileReader = new ParquetFileReader(file);
+        var rowGroupReader = parquetFileReader.RowGroup(0);
+        var numRows = (int)rowGroupReader.MetaData.NumRows;
+        Assert.That(numRows == 391);
+        var numColumns = (int)rowGroupReader.MetaData.NumColumns;
+        Assert.That(numColumns == 36);
 
-        // 1] Use the ParquetReader to read table
-        var nameColumn = await reader.ReadColumnAsync(dataFields[3]);
-        Assert.That(nameColumn.Data.Length == 391);
-        Assert.That((string)nameColumn.Data.GetValue(0) == "Appingedam");
-
-        // 2] Use the GeoParquet metadata
-        var geoParquet = parquetReader.GetGeoMetadata();
+        // 1] Use the GeoParquet metadata
+        var geoParquet = parquetFileReader.GetGeoMetadata();
         Assert.That(geoParquet.Version == "0.4.0");
         Assert.That(geoParquet.Primary_column == "geometry");
         Assert.That(geoParquet.Columns.Count == 1);
@@ -37,9 +43,13 @@ public class Tests
         var bbox = (JArray)geomColumn?["bbox"];
         Assert.That(bbox?.Count == 4);
 
-        // 3] Use the geometry column (WKB) to create NetTopologySuite geometry
-        var geometryColumn = await reader.ReadColumnAsync(dataFields[35]);
-        var geometryWkb = (byte[])geometryColumn.Data.GetValue(0);
+        // 2] Read table values
+        var nameColumn1 = rowGroupReader.Column(3).LogicalReader<String>().First();
+        Assert.That(nameColumn1 == "Appingedam");
+
+        // 4] Read WKB to create NetTopologySuite geometry
+        var geometryWkb = rowGroupReader.Column(35).LogicalReader<byte[]>().First();
+
         var wkbReader = new WKBReader();
         var multiPolygon = (MultiPolygon)wkbReader.Read(geometryWkb);
         Assert.That(multiPolygon.Coordinates.Count() == 165);
@@ -49,78 +59,58 @@ public class Tests
     }
 
     [Test]
-    public async Task ReadGeoParquet04WithArrowEncodingFile()
-    {
-        var file = "testfixtures/gemeenten2016_0.4_arrow.parquet";
-        var fileStream = File.OpenRead(file);
-        var parquetReader = await ParquetReader.CreateAsync(fileStream);
-        Assert.IsTrue(parquetReader.ThriftMetadata.Created_by == "GDAL 3.6.1, using parquet-cpp-arrow version 10.0.1");
-        var reader = parquetReader.OpenRowGroupReader(0);
-        var dataFields = parquetReader.Schema.GetDataFields();
-        var gmNaamColumn = await reader.ReadColumnAsync(dataFields[3]);
-        Assert.IsTrue(gmNaamColumn.Count == 391);
-        var geometryColumn = await reader.ReadColumnAsync(dataFields[35]);
-        var data = geometryColumn.Data;
-        Assert.IsTrue(geometryColumn.Count == 205834);
-
-        var firstX = (double)geometryColumn.Data.GetValue(0);
-        Assert.That(firstX == 6.8319922331647964);
-        var firstY = (double)geometryColumn.Data.GetValue(1);
-        Assert.That(firstY == 53.327288101088072);
-
-        var arrowReader = new ArrowFileReader(fileStream);
-        // var recordBatch = await arrowReader.ReadNextRecordBatchAsync();
-    }
-
-
-    [Test]
-    public async Task ReadGeoParquet10File()
+    public void ReadGeoParquetSharp10File()
     {
         var file = "testfixtures/gemeenten2016_1.0.parquet";
-        var fileStream = File.OpenRead(file);
+        var file1 = new ParquetFileReader(file);
+        var rowGroupReader = file1.RowGroup(0);
 
-        var parquetReader = await ParquetReader.CreateAsync(fileStream);
-        var reader = parquetReader.OpenRowGroupReader(0);
-        var dataFields = parquetReader.Schema.GetDataFields();
-        // next line fails??
-        // var nameColumn = await reader.ReadColumnAsync(dataFields[33]);
+        var gemName = rowGroupReader.Column(33).LogicalReader<String>().First();
+        Assert.IsTrue(gemName == "Appingedam");
+
+        var geometryWkb = rowGroupReader.Column(17).LogicalReader<byte[]>().First();
+        var wkbReader = new WKBReader();
+        var multiPolygon = (MultiPolygon)wkbReader.Read(geometryWkb);
+        Assert.That(multiPolygon.Coordinates.Count() == 165);
+        var firstCoordinate = multiPolygon.Coordinates.First();
+        Assert.That(firstCoordinate.CoordinateValue.X == 6.8319922331647964);
+        Assert.That(firstCoordinate.CoordinateValue.Y == 53.327288101088072);
     }
 
-
     [Test]
-    public async Task TestWriteGeoParquetFile()
+    public void TestWriteGeoParquetFile()
     {
-        var cityColumn = new DataColumn(
-            new DataField<string>("city"),
-            new string[] { "London", "Derby" });
+        var columns = new Column[]
+        {
+            new Column<string>("city"),
+            new Column<byte[]>("geometry")
+        };
 
+        var bbox = new double[] {  3.3583782525105832,
+                  50.750367484598314,
+                  7.2274984508458306,
+                  53.555014517907608};
+
+        var geometadata = GeoMetadata.GetGeoMetadata("Point", bbox);
+
+        var parquetFileWriter = new ParquetFileWriter(@"writing_sample.parquet", columns,Compression.Snappy,geometadata);
+        var rowGroup = parquetFileWriter.AppendRowGroup();
+
+        var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
+        nameWriter.WriteBatch(new string[] { "London", "Derby" });
+        nameWriter.Dispose();
+        
         var geom0 = new Point(5, 51);
         var geom1 = new Point(5.5, 51);
 
         var wkbWriter = new WKBWriter();
+        var wkbBytes = new byte[][] { wkbWriter.Write(geom0), wkbWriter.Write(geom1) };
 
-        var wkbColumn = new DataColumn(
-            new DataField<byte[]>("geometry"),
-            new byte[][] { wkbWriter.Write(geom0), wkbWriter.Write(geom1) });
+        var geometryWriter = rowGroup.NextColumn().LogicalWriter<byte[]>();
+        geometryWriter.WriteBatch(wkbBytes);
+        geometryWriter.Dispose();
 
-        var schema = new Schema(cityColumn.Field, wkbColumn.Field);
-
-        using (var stream = File.OpenWrite(@"writing_sample.parquet"))
-        {
-            using (ParquetWriter parquetWriter = await ParquetWriter.CreateAsync(schema, stream))
-            {
-                using (ParquetRowGroupWriter groupWriter = parquetWriter.CreateRowGroup())
-                {
-                    await groupWriter.WriteColumnAsync(cityColumn);
-                    await groupWriter.WriteColumnAsync(wkbColumn);
-                }
-
-                parquetWriter.SetGeoMetadata("Point", new double[] {  3.3583782525105832,
-                  50.750367484598314,
-                  7.2274984508458306,
-                  53.555014517907608});
-            }
-        }
+        parquetFileWriter.Close();
     }
 }
 

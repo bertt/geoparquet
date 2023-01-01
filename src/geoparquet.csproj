@@ -5,12 +5,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <FileVersion>0.3.1</FileVersion>
-    <AssemblyVersion>0.3.1</AssemblyVersion>
-    <PackageReleaseNotes>version 0.3.1</PackageReleaseNotes>
+    <FileVersion>0.4</FileVersion>
+    <AssemblyVersion>0.4</AssemblyVersion>
+    <PackageReleaseNotes>version 0.4</PackageReleaseNotes>
     <RepositoryUrl>https://github.com/bertt/geoparquet</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <PackageTags>parquet, geoparquet, wkb</PackageTags>
+    <PackageTags>parquet, geoparquet, wkb, geoarrow, arrow</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/bertt/geoparquet</PackageProjectUrl>
     <Copyright>Bert Temme</Copyright>
@@ -18,7 +18,7 @@
     <Company />
     <PackageId>bertt.geoparquet</PackageId>
     <Title>bertt.geoparquet</Title>
-    <Version>0.3.1</Version>
+    <Version>0.4</Version>
     <Authors>Bert Temme</Authors>
   </PropertyGroup>
 
@@ -31,8 +31,7 @@
 
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-    <PackageReference Include="Parquet.Net" Version="4.1.3" />
-    <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
+    <PackageReference Include="ParquetSharp" Version="10.0.1-beta1" />
   </ItemGroup>
 
 </Project>
