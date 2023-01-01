@@ -20,8 +20,7 @@ For reading GeoParquet files these is a ParquetFileReader extension method GetGe
 
 2] Writing 
 
-For writing GeoParquet files these a GeoMetadata.GetGeoMetadata(string geometry_type, double[] bbox, string geometry_colum="geometry") static function to get the geo metadata dictionary. This 
-dictionary can be passed to the ParquetFileWriter constructor.
+For writing GeoParquet files there is a GeoMetadata.GetGeoMetadata(string geometry_type, double[] bbox, string geometry_colum="geometry") static function to get the geo metadata dictionary. This dictionary can be passed to the ParquetFileWriter constructor.
 
 geometry_type can be one of  Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, GeometryCollection.
 
