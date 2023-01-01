@@ -148,13 +148,15 @@ GeoParquet metadata classes are generated from JSON schema using NJsonSchema.Cod
 
 # Roadmap
 
+- Add support for multiple geometry columns;
+
 - Add support for GeoParquet 1.0;
 
 - add writing Apache Arrow encoding for geometries;
 
 - add support for crs;
 
-- add (spatial) filters;
+- add (spatial) filters.
 
 ## History
 
