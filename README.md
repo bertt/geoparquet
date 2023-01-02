@@ -112,7 +112,6 @@ var rowGroup = parquetFileWriter.AppendRowGroup();
 
 var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
 nameWriter.WriteBatch(new string[] { "London", "Derby" });
-nameWriter.Dispose();
         
 var geom0 = new Point(5, 51);
 var geom1 = new Point(5.5, 51);
@@ -122,7 +121,6 @@ var wkbBytes = new byte[][] { wkbWriter.Write(geom0), wkbWriter.Write(geom1) };
 
 var geometryWriter = rowGroup.NextColumn().LogicalWriter<byte[]>();
 geometryWriter.WriteBatch(wkbBytes);
-geometryWriter.Dispose();
 
 parquetFileWriter.Close();
 ```

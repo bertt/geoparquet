@@ -8,16 +8,47 @@ namespace GeoParquet.Tests;
 public class Tests
 {
     [Test]
+    public void ReadArrowPointsTest()
+    {
+        var file1 = new ParquetFileReader("testfixtures/region_points.parquet");
+        var rowGroupReader = file1.RowGroup(0);
+        var geoParquet = file1.GetGeoMetadata();
+        var geomColumn = (JObject)geoParquet.Columns.First().Value;
+        Assert.That(geomColumn?["encoding"].ToString() == "geoarrow.point");
+        var arry = new double?[235][];
+    }
+
+    [Test]
     public void ReaderParquetSharp04ArrowTest()
     {
-        var file = "testfixtures/gemeenten2016_0.4_arrow.parquet";
+        var firstArrowGeom = GetFirstArrowGeom("testfixtures/gemeenten2016_0.4_arrow.parquet");
+        var firstWkbGeom = GetFirstWkbGeom("testfixtures/gemeenten2016_0.4.parquet");
+        var wkbReader = new WKBReader();
+        var multiPolygon = (MultiPolygon)wkbReader.Read(firstWkbGeom);
+
+        Assert.That(firstArrowGeom[0][0].Length == 165);
+    }
+
+    private static double?[][][][] GetFirstArrowGeom(string file)
+    {
         var file1 = new ParquetFileReader(file);
         var rowGroupReader = file1.RowGroup(0);
         var groupNumRows = (int)rowGroupReader.MetaData.NumRows;
         var geometryColumn = rowGroupReader.Column(35).LogicalReader<Double?[][][][]>().ReadAll(groupNumRows);
         var firstArrowGeom = geometryColumn[0];
-        Assert.That(firstArrowGeom[0][0].Length == 165);
+        return firstArrowGeom;
     }
+
+    private static byte[] GetFirstWkbGeom(string file)
+    {
+        var file1 = new ParquetFileReader(file);
+        var rowGroupReader = file1.RowGroup(0);
+        var groupNumRows = (int)rowGroupReader.MetaData.NumRows;
+        var geometryColumn = rowGroupReader.Column(35).LogicalReader<byte[]>().ReadAll(groupNumRows);
+        var firstWkbGeom = geometryColumn[0];
+        return firstWkbGeom;
+    }
+
 
     [Test]
     public void ReaderParquetSharp04Test()
@@ -78,7 +109,7 @@ public class Tests
     }
 
     [Test]
-    public void TestWriteGeoParquetFile()
+    public void TestWriteGeoParquetWkbFile()
     {
         var columns = new Column[]
         {
@@ -98,7 +129,6 @@ public class Tests
 
         var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
         nameWriter.WriteBatch(new string[] { "London", "Derby" });
-        nameWriter.Dispose();
         
         var geom0 = new Point(5, 51);
         var geom1 = new Point(5.5, 51);
@@ -108,8 +138,45 @@ public class Tests
 
         var geometryWriter = rowGroup.NextColumn().LogicalWriter<byte[]>();
         geometryWriter.WriteBatch(wkbBytes);
-        geometryWriter.Dispose();
+        parquetFileWriter.Close();
+    }
 
+
+    [Test]
+    // Attempt to write a GeoParquet arrow file with 2 points.
+    // The file gets created but in QGIS nothing is visualized :-(
+    // Probably because the type of the geometry column must be different
+    public void TestWriteGeoParquetArrowFile()
+    {
+        var columns = new Column[]
+        {
+            new Column<string>("city"),
+            new Column<Double?[]>("geometry")
+        };
+
+        var bbox = new double[] {  3.3583782525105832,
+                  50.750367484598314,
+                  7.2274984508458306,
+                  53.555014517907608};
+
+        var geometadata = GeoMetadata.GetGeoMetadata("Point", bbox, encoding: "geoarrow.point");
+
+        var parquetFileWriter = new ParquetFileWriter(@"d:\aaa\writing_sample_arrow.parquet", columns, Compression.Snappy, geometadata);
+        var rowGroup = parquetFileWriter.AppendRowGroup();
+
+        var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
+        nameWriter.WriteBatch(new string[] { "London", "Derby" });
+
+        var geom0 = new Point(5.1, 51.1);
+        var geom1 = new Point(5.5, 51.1);
+
+        // https://github.com/geoarrow/geoarrow/blob/main/format.md
+        var points = new double?[2][];
+        points[0] = new double?[2] {geom0.X, geom0.Y};
+        points[1] = new double?[2] { geom1.X, geom1.Y };
+
+        var geometryWriter = rowGroup.NextColumn().LogicalWriter<Double?[]> ();
+        geometryWriter.WriteBatch(points);
         parquetFileWriter.Close();
     }
 }
