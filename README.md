@@ -62,7 +62,7 @@ Assert.That(bbox?.Count == 4);
 var nameColumn1 = rowGroupReader.Column(3).LogicalReader<String>().First();
 Assert.That(nameColumn1 == "Appingedam");
 
-// 4] Read WKB to create NetTopologySuite geometry
+// 3] Read WKB to create NetTopologySuite geometry
 var geometryWkb = rowGroupReader.Column(35).LogicalReader<byte[]>().First();
 
 var wkbReader = new WKBReader();

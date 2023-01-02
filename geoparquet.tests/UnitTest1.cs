@@ -161,7 +161,7 @@ public class Tests
 
         var geometadata = GeoMetadata.GetGeoMetadata("Point", bbox, encoding: "geoarrow.point");
 
-        var parquetFileWriter = new ParquetFileWriter(@"d:\aaa\writing_sample_arrow.parquet", columns, Compression.Snappy, geometadata);
+        var parquetFileWriter = new ParquetFileWriter(@"writing_sample_arrow.parquet", columns, Compression.Snappy, geometadata);
         var rowGroup = parquetFileWriter.AppendRowGroup();
 
         var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
@@ -170,7 +170,6 @@ public class Tests
         var geom0 = new Point(5.1, 51.1);
         var geom1 = new Point(5.5, 51.1);
 
-        // https://github.com/geoarrow/geoarrow/blob/main/format.md
         var points = new double?[2][];
         points[0] = new double?[2] {geom0.X, geom0.Y};
         points[1] = new double?[2] { geom1.X, geom1.Y };
