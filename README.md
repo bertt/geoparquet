@@ -12,15 +12,15 @@ NuGet: https://www.nuget.org/packages/bertt.geoparquet/
 
 ## Architecture
 
-In this package there are functions for handling Geometadata
+In this package there are functions for handling Geometadata:
 
 1] Reading
 
-For reading GeoParquet files these is a ParquetFileReader extension method GetGeoMetadata() to obtain the Geo metadata
+For reading GeoParquet files there is a ParquetFileReader extension method GetGeoMetadata() to obtain the Geo metadata
 
 2] Writing 
 
-For writing GeoParquet files these a GeoMetadata.GetGeoMetadata(string geometry_type, double[] bbox, string geometry_colum="geometry") static function to get the geo metadata dictionary. This 
+For writing GeoParquet files there is GeoMetadata.GetGeoMetadata(string geometry_type, double[] bbox, string geometry_colum="geometry") static function to get the geo metadata dictionary. This 
 dictionary can be passed to the ParquetFileWriter constructor.
 
 geometry_type can be one of  Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, GeometryCollection.
@@ -32,7 +32,7 @@ See sample code below for reading/writing samples.
 In these samples NetTopologySuite (https://github.com/NetTopologySuite/NetTopologySuite) is used for handling geometries, but any library that can handle 
 WKB geometries can be used.
 
-### Reading:
+### Reading
 
 Use extension method 'parquetReader.GetGeoMetadata()':
 
@@ -166,5 +166,5 @@ GeoParquet metadata classes are generated from JSON schema using NJsonSchema.Cod
 
 2022-12-27: version 0.2 - add extension method to read geo metadata
 
-2022-12-23: initial 0.1 version implementing reader
+2022-12-23: version 0.1 - implementing reader
 
