@@ -19,7 +19,7 @@ var json = File.ReadAllText("./v0.4.0/schema.json");
 */
 
 var schema = await JsonSchema.FromJsonAsync(json);
-var settings = new CSharpGeneratorSettings();
+var settings = new CSharpGeneratorSettings() { JsonLibrary = CSharpJsonLibrary.SystemTextJson };
 settings.Namespace = "GeoParquet";
 var generator = new CSharpGenerator(schema, settings);
 

@@ -11,11 +11,24 @@ public class Tests
     public void ReadArrowPointsTest()
     {
         var file1 = new ParquetFileReader("testfixtures/region_points.parquet");
+
+        var geomPhysicalType = file1.FileMetaData.Schema.Column(9).PhysicalType;
+        Assert.That(geomPhysicalType == PhysicalType.Double);
+        var geomLogicalType = file1.FileMetaData.Schema.ColumnRoot(9).LogicalType;
+        Assert.That(geomLogicalType is ListLogicalType);
         var rowGroupReader = file1.RowGroup(0);
         var geoParquet = file1.GetGeoMetadata();
         var geomColumn = (JObject)geoParquet.Columns.First().Value;
         Assert.That(geomColumn?["encoding"].ToString() == "geoarrow.point");
-        var arry = new double?[235][];
+
+        var groupNumRows = (int)rowGroupReader.MetaData.NumRows;
+        var geometryColumn = rowGroupReader.Column(9).LogicalReader<Double?[]>().ReadAll(groupNumRows);
+        var firstArrowGeom = geometryColumn[0];
+        Assert.That(firstArrowGeom[0] == 146.03379804609568);
+        Assert.That(firstArrowGeom[1] == -43.5404025683706);
+
+
+
     }
 
     [Test]
@@ -161,7 +174,7 @@ public class Tests
 
         var geometadata = GeoMetadata.GetGeoMetadata("Point", bbox, encoding: "geoarrow.point");
 
-        var parquetFileWriter = new ParquetFileWriter(@"writing_sample_arrow.parquet", columns, Compression.Snappy, geometadata);
+        var parquetFileWriter = new ParquetFileWriter(@"d:\aaa\writing_sample_arrow.parquet", columns, Compression.Snappy, geometadata);
         var rowGroup = parquetFileWriter.AppendRowGroup();
 
         var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();

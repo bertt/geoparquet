@@ -18,21 +18,30 @@ namespace GeoParquet
         /// <summary>
         /// The version of the geoparquet metadata standard used when writing.
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("version", Required = Newtonsoft.Json.Required.Always)]
+
+        [System.Text.Json.Serialization.JsonPropertyName("version")]
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.Never)]   
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Version { get; set; }
 
         /// <summary>
         /// The name of the 'primary' geometry column.
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("primary_column", Required = Newtonsoft.Json.Required.Always)]
+
+        [System.Text.Json.Serialization.JsonPropertyName("primary_column")]
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.Never)]   
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
         public string Primary_column { get; set; }
 
         /// <summary>
         /// Metadata about geometry columns, with each key is the name of a geometry column in the table.
         /// </summary>
-        [Newtonsoft.Json.JsonProperty("columns", Required = Newtonsoft.Json.Required.Always)]
+
+        [System.Text.Json.Serialization.JsonPropertyName("columns")]
+
+        [System.Text.Json.Serialization.JsonIgnore(Condition = System.Text.Json.Serialization.JsonIgnoreCondition.Never)]   
         [System.ComponentModel.DataAnnotations.Required]
         public System.Collections.Generic.IDictionary<string, object> Columns { get; set; } = new System.Collections.Generic.Dictionary<string, object>();
 
@@ -40,7 +49,7 @@ namespace GeoParquet
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
-        [Newtonsoft.Json.JsonExtensionData]
+        [System.Text.Json.Serialization.JsonExtensionData]
         public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
         {
             get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
