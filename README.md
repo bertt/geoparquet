@@ -10,6 +10,35 @@ Blog: https://bertt.wordpress.com/2022/12/20/geoparquet-geospatial-vector-data-u
 
 NuGet: https://www.nuget.org/packages/bertt.geoparquet/
 
+Sample GeoParquet JSON metadata:
+
+```json
+{
+   [
+      "geo",
+      {
+         "Version":"0.4.0",
+         "Primary_column":"geometry",
+         "Columns":{
+            "geometry":{
+               "encoding":"geoarrow.point",
+               "orientation":"counterclockwise",
+               "geometry_type":"Point",
+               "bbox":[
+                  3.358378252510583,
+                  50.750367484598314,
+                  7.227498450845831,
+                  53.55501451790761
+               ]
+            }
+         },
+         "AdditionalProperties":{
+         }
+      }
+   ]
+}
+```
+
 ## Architecture
 
 In this package there are functions for handling Geometadata:
