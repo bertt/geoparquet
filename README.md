@@ -14,28 +14,22 @@ Sample GeoParquet JSON metadata:
 
 ```json
 {
-   [
-      "geo",
-      {
-         "Version":"0.4.0",
-         "Primary_column":"geometry",
-         "Columns":{
-            "geometry":{
-               "encoding":"geoarrow.point",
-               "orientation":"counterclockwise",
-               "geometry_type":"Point",
-               "bbox":[
-                  3.358378252510583,
-                  50.750367484598314,
-                  7.227498450845831,
-                  53.55501451790761
-               ]
-            }
-         },
-         "AdditionalProperties":{
-         }
+   "version":"1.0.0-beta.1",
+   "primary_column":"geometry",
+   "columns":{
+      "geometry":{
+         "encoding":"WKB",
+         "geometry_types":[
+            "MultiPolygon"
+         ],
+         "bbox":[
+            3.358378252510583,
+            50.750367484598314,
+            7.227498450845831,
+            53.55501451790761
+         ]
       }
-   ]
+   }
 }
 ```
 
@@ -49,10 +43,8 @@ For reading GeoParquet files there is a ParquetFileReader extension method GetGe
 
 2] Writing 
 
-For writing GeoParquet files there is GeoMetadata.GetGeoMetadata(string geometry_type, double[] bbox, string geometry_colum="geometry") static function to get the geo metadata dictionary. This 
+For writing GeoParquet files there is GeoMetadata.GetGeoMetadata(GeoColumn geoColumn) static function to get the geo metadata dictionary. This 
 dictionary can be passed to the ParquetFileWriter constructor.
-
-geometry_type can be one of  Point, LineString, Polygon, MultiPoint, MultiLineString, MultiPolygon, GeometryCollection.
 
 See sample code below for reading/writing samples.
 
@@ -66,52 +58,23 @@ WKB geometries can be used.
 Use extension method 'parquetReader.GetGeoMetadata()':
 
 ```
-// 0] read the GeoParquet file
-var file = "testfixtures/gemeenten2016_0.4.parquet";
-var parquetFileReader = new ParquetFileReader(file);
-var rowGroupReader = parquetFileReader.RowGroup(0);
-var numRows = (int)rowGroupReader.MetaData.NumRows;
-Assert.That(numRows == 391);
-var numColumns = (int)rowGroupReader.MetaData.NumColumns;
-Assert.That(numColumns == 36);
+var file = "testfixtures/gemeenten2016_1.0.parquet";
+var file1 = new ParquetFileReader(file);
 
-// 1] Use the GeoParquet metadata
-var geoParquet = parquetFileReader.GetGeoMetadata();
-Assert.That(geoParquet.Version == "0.4.0");
-Assert.That(geoParquet.Primary_column == "geometry");
-Assert.That(geoParquet.Columns.Count == 1);
-var geomColumn = (JObject)geoParquet.Columns.First().Value;
-Assert.That(geomColumn?["encoding"].ToString() == "WKB");
-Assert.That(geomColumn?["orientation"].ToString() == "counterclockwise");
-Assert.That(geomColumn?["geometry_type"].ToString() == "MultiPolygon");
-var bbox = (JArray)geomColumn?["bbox"];
-Assert.That(bbox?.Count == 4);
+var geoParquet = file1.GetGeoMetadata();
+Assert.That(geoParquet.Version == "1.0.0-beta.1");
 
-// 2] Read table values
-var nameColumn1 = rowGroupReader.Column(3).LogicalReader<String>().First();
-Assert.That(nameColumn1 == "Appingedam");
+var rowGroupReader = file1.RowGroup(0);
+var gemName = rowGroupReader.Column(33).LogicalReader<String>().First();
+Assert.IsTrue(gemName == "Appingedam");
 
-// 3] Read WKB to create NetTopologySuite geometry
-var geometryWkb = rowGroupReader.Column(35).LogicalReader<byte[]>().First();
-
+var geometryWkb = rowGroupReader.Column(17).LogicalReader<byte[]>().First();
 var wkbReader = new WKBReader();
 var multiPolygon = (MultiPolygon)wkbReader.Read(geometryWkb);
 Assert.That(multiPolygon.Coordinates.Count() == 165);
 var firstCoordinate = multiPolygon.Coordinates.First();
 Assert.That(firstCoordinate.CoordinateValue.X == 6.8319922331647964);
 Assert.That(firstCoordinate.CoordinateValue.Y == 53.327288101088072);
-```
-
-To read Apache Arrow encoded geometry use type 'Double?[][][][]' for MultiPolygons:
-
-```
-var file = "testfixtures/gemeenten2016_0.4_arrow.parquet";
-var file1 = new ParquetFileReader(file);
-var rowGroupReader = file1.RowGroup(0);
-var groupNumRows = (int)rowGroupReader.MetaData.NumRows;
-var geometryColumn = rowGroupReader.Column(35).LogicalReader<Double?[][][][]>().ReadAll(groupNumRows);
-var firstArrowGeom = geometryColumn[0];
-Assert.That(firstArrowGeom[0][0].Length == 165);
 ```
 
 ### Writing 
@@ -134,9 +97,13 @@ var bbox = new double[] {  3.3583782525105832,
             7.2274984508458306,
             53.555014517907608};
 
-var geometadata = GeoMetadata.GetGeoMetadata("Point", bbox);
+var geoColumn = new GeoColumn();
+geoColumn.Bbox = bbox;
+geoColumn.Encoding = "WKB";
+geoColumn.Geometry_types.Add("Point");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
-var parquetFileWriter = new ParquetFileWriter(@"writing_sample.parquet", columns,Compression.Snappy,geometadata);
+var parquetFileWriter = new ParquetFileWriter(@"d:\aaa\writing_sample.parquet", columns,Compression.Snappy,geometadata);
 var rowGroup = parquetFileWriter.AppendRowGroup();
 
 var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
@@ -150,42 +117,37 @@ var wkbBytes = new byte[][] { wkbWriter.Write(geom0), wkbWriter.Write(geom1) };
 
 var geometryWriter = rowGroup.NextColumn().LogicalWriter<byte[]>();
 geometryWriter.WriteBatch(wkbBytes);
-
 parquetFileWriter.Close();
-```
+  ```
 
 ## Dependencies
 
 - Newtonsoft.JSON 13 https://github.com/JamesNK/Newtonsoft.Json
 
-- ParquetSharp 10 https://github.com/G-Research/ParquetSharp
+- ParquetSharp 12 https://github.com/G-Research/ParquetSharp
 
 ## Schema generation 
 
-At the moment we use schema 0.4 from:
-
-https://geoparquet.org/releases/v0.4.0/schema.json
-
-When there are testfiles available with schema 1.0.0-beta.1 we can switch to that version.
-
-https://geoparquet.org/releases/v1.0.0-beta.1/schema.json
-
 GeoParquet metadata classes are generated from JSON schema using NJsonSchema.CodeGeneration.CSharp (https://github.com/RicoSuter/NJsonSchema), see console project 
 'geoparquet.codegen' for details.
+
+Schema used: 
+
+https://geoparquet.org/releases/v1.0.0-beta.1/schema.json
 
 # Roadmap
 
 - Add support for multiple geometry columns;
 
-- Add support for GeoParquet 1.0;
-
-- add writing Apache Arrow encoding for geometries;
+- add reading/writing Apache Arrow encoding for geometries;
 
 - add support for crs;
 
 - add (spatial) filters.
 
 ## History
+
+2023-07-13: version 0.5 - using schema v1.0.0-beta.1, ParquetSharp to 12.0.1
 
 2023-01-01: version 0.4 - using ParquetSharp 10.0.1-beta1 instead of Parquet.Net 4
 

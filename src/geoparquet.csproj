@@ -1,37 +1,37 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-    <FileVersion>0.4</FileVersion>
-    <AssemblyVersion>0.4</AssemblyVersion>
-    <PackageReleaseNotes>version 0.4</PackageReleaseNotes>
-    <RepositoryUrl>https://github.com/bertt/geoparquet</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
-    <PackageTags>parquet, geoparquet, wkb, geoarrow, arrow</PackageTags>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://github.com/bertt/geoparquet</PackageProjectUrl>
-    <Copyright>Bert Temme</Copyright>
-    <Description>Reader/Writer for GeoParquet files</Description>
-    <Company />
-    <PackageId>bertt.geoparquet</PackageId>
-    <Title>bertt.geoparquet</Title>
-    <Version>0.4</Version>
-    <Authors>Bert Temme</Authors>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net6.0</TargetFramework>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<FileVersion>0.5</FileVersion>
+		<AssemblyVersion>0.5</AssemblyVersion>
+		<PackageReleaseNotes>version 0.5</PackageReleaseNotes>
+		<RepositoryUrl>https://github.com/bertt/geoparquet</RepositoryUrl>
+		<RepositoryType>git</RepositoryType>
+		<PackageTags>parquet, geoparquet, wkb, geoarrow, arrow</PackageTags>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageProjectUrl>https://github.com/bertt/geoparquet</PackageProjectUrl>
+		<Copyright>Bert Temme</Copyright>
+		<Description>Reader/Writer for GeoParquet files</Description>
+		<Company />
+		<PackageId>bertt.geoparquet</PackageId>
+		<Title>bertt.geoparquet</Title>
+		<Version>0.5</Version>
+		<Authors>Bert Temme</Authors>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <None Include="..\README.md">
-      <Pack>True</Pack>
-      <PackagePath>\</PackagePath>
-    </None>
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\README.md">
+			<Pack>True</Pack>
+			<PackagePath>\</PackagePath>
+		</None>
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
-    <PackageReference Include="ParquetSharp" Version="10.0.1-beta1" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
+		<PackageReference Include="ParquetSharp" Version="10.0.1-beta1" />
+	</ItemGroup>
 
 </Project>

@@ -1,25 +1,21 @@
-﻿using Newtonsoft.Json.Linq;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 
 namespace GeoParquet;
 public static class GeoMetadata
 {
-    public static Dictionary<string, string> GetGeoMetadata(string geometry_type, double[] bbox, string geometry_column = "geometry", string encoding = "WKB")
+    public static Dictionary<string, string> GetGeoMetadata(GeoColumn geoColumn)
     {
         var parquet = new GeoParquet();
-        parquet.Version = "0.4.0";
-        parquet.Primary_column = geometry_column;
+        parquet.Version = "1.0.0-beta.1";
+        parquet.Primary_column = "geometry";
+        parquet.Columns.Add("geometry", geoColumn);
 
-        var o = new JObject();
-        o["encoding"] = encoding;
-        o["orientation"] = "counterclockwise";
-        o["geometry_type"] = geometry_type;
-        o["bbox"] = new JArray() { bbox[0], bbox[1], bbox[2], bbox[3] };
+        var serializerSettings = new JsonSerializerSettings();
+        serializerSettings.NullValueHandling = NullValueHandling.Ignore;
+        serializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
 
-        var colKvp = new KeyValuePair<string, object>(geometry_column, o);
-        parquet.Columns.Add(colKvp);
-
-        var json = JsonConvert.SerializeObject(parquet);
+        var json = JsonConvert.SerializeObject(parquet, serializerSettings);
         var dict = new Dictionary<string, string>
         {
             ["geo"] = json
