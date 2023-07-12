@@ -103,7 +103,7 @@ geoColumn.Encoding = "WKB";
 geoColumn.Geometry_types.Add("Point");
 var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
-var parquetFileWriter = new ParquetFileWriter(@"d:\aaa\writing_sample.parquet", columns,Compression.Snappy,geometadata);
+var parquetFileWriter = new ParquetFileWriter(@"writing_sample.parquet", columns,Compression.Snappy,geometadata);
 var rowGroup = parquetFileWriter.AppendRowGroup();
 
 var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
