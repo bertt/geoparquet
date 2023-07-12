@@ -7,16 +7,6 @@ namespace GeoParquet.Tests;
 public class Tests
 {
     [Test]
-    public void Read2()
-    {
-        // var file = @"D:\gisdata\usbuildings\Utah.parquet";
-        var file = @"D:\aaa\writing_sample.parquet";
-        var file1 = new ParquetFileReader(file);
-
-        var geoParquet = file1.GetGeoMetadata();
-
-    }
-    [Test]
     public void ReadGeoParquetFile()
     {
         var file = "testfixtures/gemeenten2016_1.0.parquet";
@@ -58,7 +48,7 @@ public class Tests
         geoColumn.Geometry_types.Add("Point");
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
-        var parquetFileWriter = new ParquetFileWriter(@"d:\aaa\writing_sample.parquet", columns,Compression.Snappy,geometadata);
+        var parquetFileWriter = new ParquetFileWriter(@"writing_sample.parquet", columns, keyValueMetadata: geometadata);
         var rowGroup = parquetFileWriter.AppendRowGroup();
 
         var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
