@@ -28,7 +28,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="testfixtures\gemeenten2016_1.0.parquet">
+    <None Update="testfixtures\gemeenten2016.arrow">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="testfixtures\gemeenten2016_arrow.parquet">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="testfixtures\gemeenten2016_wkb.parquet">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

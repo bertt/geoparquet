@@ -7,25 +7,76 @@ namespace GeoParquet.Tests;
 public class Tests
 {
     [Test]
-    public void ReadGeoParquetFile()
+    public void ReadGeoParquetArrowFile()
     {
-        var file = "testfixtures/gemeenten2016_1.0.parquet";
+        var file = "testfixtures/gemeenten2016_arrow.parquet";
+        var file1 = new ParquetFileReader(file);
+        var geoParquet = file1.GetGeoMetadata();
+        Assert.That(geoParquet.Version == "1.0.0-beta.1");
+        Assert.That(geoParquet.Columns.First().Value.Encoding == "geoarrow.multipolygon");
+
+        // geoarrow.multipolygon
+        var rowGroupReader = file1.RowGroup(0);
+
+        // todo: why is column 'xy' not specified?
+        var geomColumnId = GetColumnId(rowGroupReader, "xy");
+
+        if (geomColumnId != null)
+        {
+            var geometryArrow = rowGroupReader.Column((int)geomColumnId).LogicalReader<Double?[][][][]>().First();
+            Assert.That(geometryArrow.Length == 1);
+            Assert.That(geometryArrow[0].Length == 1);
+            Assert.That(geometryArrow[0][0].Length == 165); //165 vertices
+            Assert.That(geometryArrow[0][0][0].Length == 2); //2 points
+            Assert.That(geometryArrow[0][0][0][0] == 6.8319922331647964); // longitude first vertice
+            Assert.That(geometryArrow[0][0][0][1] == 53.327288101088072); // latitude first vertice
+        }
+    }
+
+    [Test]
+    public void ReadGeoParquetWkbFile()
+    {
+        var file = "testfixtures/gemeenten2016_wkb.parquet";
         var file1 = new ParquetFileReader(file);
 
         var geoParquet = file1.GetGeoMetadata();
         Assert.That(geoParquet.Version == "1.0.0-beta.1");
+        Assert.That(geoParquet.Columns.First().Value.Encoding == "WKB");
 
         var rowGroupReader = file1.RowGroup(0);
-        var gemName = rowGroupReader.Column(33).LogicalReader<String>().First();
+        var gemName = rowGroupReader.Column(3).LogicalReader<String>().First();
         Assert.IsTrue(gemName == "Appingedam");
 
-        var geometryWkb = rowGroupReader.Column(17).LogicalReader<byte[]>().First();
-        var wkbReader = new WKBReader();
-        var multiPolygon = (MultiPolygon)wkbReader.Read(geometryWkb);
-        Assert.That(multiPolygon.Coordinates.Count() == 165);
-        var firstCoordinate = multiPolygon.Coordinates.First();
-        Assert.That(firstCoordinate.CoordinateValue.X == 6.8319922331647964);
-        Assert.That(firstCoordinate.CoordinateValue.Y == 53.327288101088072);
+        var geomColumnId = GetColumnId(rowGroupReader, geoParquet.Primary_column);
+
+        if (geomColumnId != null)
+        {
+            var geometryWkb = rowGroupReader.Column((int)geomColumnId).LogicalReader<byte[]>().First();
+            var wkbReader = new WKBReader();
+            var multiPolygon = (MultiPolygon)wkbReader.Read(geometryWkb);
+            Assert.That(multiPolygon.Coordinates.Count() == 165);
+            var firstCoordinate = multiPolygon.Coordinates.First();
+            Assert.That(firstCoordinate.CoordinateValue.X == 6.8319922331647964);
+            Assert.That(firstCoordinate.CoordinateValue.Y == 53.327288101088072);
+        }
+    }
+
+    private static int? GetColumnId(RowGroupReader rowGroupReader, string columnName)
+    {
+        var names = new List<string>();
+        var numColumns = rowGroupReader.MetaData.NumColumns;
+
+        for (var i = 0; i < numColumns; i++)
+        {
+            var name = rowGroupReader.MetaData.Schema.Column(i).Name;
+            if (name == columnName)
+            {
+                return i;
+            }
+            names.Add(name);
+        }
+
+        return null;
     }
 
     [Test]

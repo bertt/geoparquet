@@ -77,6 +77,25 @@ Assert.That(firstCoordinate.CoordinateValue.X == 6.8319922331647964);
 Assert.That(firstCoordinate.CoordinateValue.Y == 53.327288101088072);
 ```
 
+Sample reading GeoParquet file with GeoArrow encoding:
+
+```
+var geomColumnId = GetColumnId(rowGroupReader, "xy");
+Assert.That(geoParquet.Columns.First().Value.Encoding == "geoarrow.multipolygon");
+
+if (geomColumnId != null)
+{
+    var geometryArrow = rowGroupReader.Column((int)geomColumnId).LogicalReader<Double?[][][][]>().First();
+    Assert.That(geometryArrow.Length == 1);
+    Assert.That(geometryArrow[0].Length == 1);
+    Assert.That(geometryArrow[0][0].Length == 165); //165 vertices
+    Assert.That(geometryArrow[0][0][0].Length == 2); //2 points
+    Assert.That(geometryArrow[0][0][0][0] == 6.8319922331647964); // longitude first vertice
+    Assert.That(geometryArrow[0][0][0][1] == 53.327288101088072); // latitude first vertice
+}
+
+```
+
 ### Writing 
 
 Use GeoMetadata.GetGeoMetadata to construct the ParquetFileWriter, store the geometries as WKB.
@@ -137,7 +156,7 @@ https://geoparquet.org/releases/v1.0.0-beta.1/schema.json
 
 - Add support for multiple geometry columns;
 
-- add reading/writing Apache Arrow encoding for geometries;
+- add writing Apache Arrow encoding for geometries;
 
 - add support for crs;
 
