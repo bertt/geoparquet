@@ -48,7 +48,7 @@ public class Tests
         geoColumn.Geometry_types.Add("Point");
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
-        var parquetFileWriter = new ParquetFileWriter(@"writing_sample.parquet", columns, keyValueMetadata: geometadata);
+        var parquetFileWriter = new ParquetFileWriter(@"writing_sample11.parquet", columns, keyValueMetadata: geometadata);
         var rowGroup = parquetFileWriter.AppendRowGroup();
 
         var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();

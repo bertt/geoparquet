@@ -122,8 +122,6 @@ parquetFileWriter.Close();
 
 ## Dependencies
 
-- Newtonsoft.JSON 13 https://github.com/JamesNK/Newtonsoft.Json
-
 - ParquetSharp 12 https://github.com/G-Research/ParquetSharp
 
 ## Schema generation 

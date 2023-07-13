@@ -1,5 +1,5 @@
-﻿using Newtonsoft.Json;
-using ParquetSharp;
+﻿using ParquetSharp;
+using System.Text.Json;
 
 namespace GeoParquet;
 public static class GeoParquetExtensions
@@ -8,7 +8,7 @@ public static class GeoParquetExtensions
     {
         var metadata = parquetFileReader.FileMetaData.KeyValueMetadata;
         var geoMetaData = metadata.GetValueOrDefault("geo");
-        var geoParquet = JsonConvert.DeserializeObject<GeoParquet>(geoMetaData);
+        var geoParquet = JsonSerializer.Deserialize<GeoParquet>(geoMetaData);
         return geoParquet;
     }
 }
