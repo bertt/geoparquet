@@ -13,13 +13,14 @@ public class Tests
         var file1 = new ParquetFileReader(file);
         var geoParquet = file1.GetGeoMetadata();
         Assert.That(geoParquet.Version == "1.0.0-beta.1");
-        Assert.That(geoParquet.Columns.First().Value.Encoding == "geoarrow.multipolygon");
 
         // geoarrow.multipolygon
         var rowGroupReader = file1.RowGroup(0);
 
+
         // todo: why is column 'xy' not specified?
         var geomColumnId = GetColumnId(rowGroupReader, "xy");
+        Assert.That(geoParquet.Columns.First().Value.Encoding == "geoarrow.multipolygon");
 
         if (geomColumnId != null)
         {
