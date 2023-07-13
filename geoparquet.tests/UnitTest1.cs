@@ -1,3 +1,4 @@
+using Apache.Arrow.Ipc;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using ParquetSharp;
@@ -6,6 +7,17 @@ namespace GeoParquet.Tests;
 
 public class Tests
 {
+    [Test]
+    public async Task ReadArrowFile()
+    {
+        var file = "testfixtures/gemeenten2016.arrow";
+        var stream = File.OpenRead(file);
+        var reader = new ArrowFileReader(stream);
+        // Next line gives: FixedSizeList is unsupported...
+        var recordBatch = await reader.ReadNextRecordBatchAsync();
+    }
+
+
     [Test]
     public void ReadGeoParquetArrowFile()
     {
