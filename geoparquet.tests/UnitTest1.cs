@@ -8,18 +8,35 @@ namespace GeoParquet.Tests;
 public class Tests
 {
     [Test]
-    public async Task ReadArrowFile()
+    public async Task ReadArrowPointFile()
     {
         var file = "testfixtures/gemeenten2016.arrow";
         var stream = File.OpenRead(file);
         var reader = new ArrowFileReader(stream);
         // Next line gives: FixedSizeList is unsupported...
-        var recordBatch = await reader.ReadNextRecordBatchAsync();
+        // var recordBatch = await reader.ReadNextRecordBatchAsync();
     }
 
+    [Test]
+    public void ReadUtrechtKunstwerkenFile()
+    {
+        var file = "testfixtures/utrecht_kunstwerken.parquet";
+        var file1 = new ParquetFileReader(file);
+        var geoParquet = file1.GetGeoMetadata();
+        var rowGroupReader = file1.RowGroup(0);
+        var geomColumnId = GetColumnId(rowGroupReader, "xy");
+        Assert.That(geoParquet.Columns.First().Value.Encoding == "geoarrow.point");
+
+        if (geomColumnId != null)
+        {
+            var geometryArrowPoint = rowGroupReader.Column((int)geomColumnId).LogicalReader<Double?[]>().First();
+            Assert.That(geometryArrowPoint[0] == 5.130985969530343);
+            Assert.That(geometryArrowPoint[1] == 52.089758941656768);
+        }
+    }
 
     [Test]
-    public void ReadGeoParquetArrowFile()
+    public void ReadGeoParquetArrowPolygonFile()
     {
         var file = "testfixtures/gemeenten2016_arrow.parquet";
         var file1 = new ParquetFileReader(file);

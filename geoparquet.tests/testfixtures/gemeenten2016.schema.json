@@ -1,0 +1,327 @@
+{
+  "fields": [
+    {
+      "name": "ogc_fid",
+      "type": {
+        "isSigned": true,
+        "bitWidth": 32
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "gid",
+      "type": {
+        "isSigned": true,
+        "bitWidth": 32
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "gm_code",
+      "type": {},
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "gm_naam",
+      "type": {},
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "water",
+      "type": {},
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "oad",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "sted",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "aant_inw",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "aant_man",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "aant_vrouw",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_00_14_jr",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_15_24_jr",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_25_44_jr",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_45_64_jr",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_65_eo_jr",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_ongehuwd",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_gehuwd",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_gescheid",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_verweduw",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "bev_dichth",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "aantal_hh",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_eenp_hh",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_hh_z_k",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_hh_m_k",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "gem_hh_gr",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_west_al",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_n_w_al",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_marokko",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_ant_aru",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_surinam",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_turkije",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "p_over_nw",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "opp_tot",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "opp_land",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "opp_water",
+      "type": {
+        "precision": 2
+      },
+      "nullable": true,
+      "metadata": {}
+    },
+    {
+      "name": "geometry",
+      "type": {
+        "children": [
+          {
+            "name": "item",
+            "type": {
+              "children": [
+                {
+                  "name": "item",
+                  "type": {
+                    "children": [
+                      {
+                        "name": "item",
+                        "type": {
+                          "listSize": 2,
+                          "children": [
+                            {
+                              "name": "xy",
+                              "type": {
+                                "precision": 2
+                              },
+                              "nullable": false,
+                              "metadata": {}
+                            }
+                          ]
+                        },
+                        "nullable": true,
+                        "metadata": {}
+                      }
+                    ]
+                  },
+                  "nullable": true,
+                  "metadata": {}
+                }
+              ]
+            },
+            "nullable": true,
+            "metadata": {}
+          }
+        ]
+      },
+      "nullable": true,
+      "metadata": {}
+    }
+  ],
+  "metadata": {},
+  "dictionaries": {}
+}
