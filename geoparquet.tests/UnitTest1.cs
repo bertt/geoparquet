@@ -1,7 +1,10 @@
 using Apache.Arrow.Ipc;
+using geoarrow;
+using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using ParquetSharp;
+using ParquetSharp.Schema;
 
 namespace GeoParquet.Tests;
 
@@ -18,9 +21,20 @@ public class Tests
     }
 
     [Test]
+    public void ReadUtrechtKunstwerkenFileToDataFrame()
+    {
+        var file = "testfixtures/utrecht_kunstwerken.parquet";
+        var file1 = new ParquetFileReader(file);
+        // failed attempt to go to dataframe
+        // next line gives error: Unsupported LogicalType Double?[]
+        // var dataframe =file1.ToDataFrame();
+    }
+
+    [Test]
     public void ReadUtrechtKunstwerkenFile()
     {
         var file = "testfixtures/utrecht_kunstwerken.parquet";
+        //var file = "d:/aaa/cities_arrow1.parquet";
         var file1 = new ParquetFileReader(file);
         var geoParquet = file1.GetGeoMetadata();
         var rowGroupReader = file1.RowGroup(0);
@@ -29,10 +43,16 @@ public class Tests
 
         if (geomColumnId != null)
         {
-            var geometryArrowPoint = rowGroupReader.Column((int)geomColumnId).LogicalReader<Double?[]>().First();
-            Assert.That(geometryArrowPoint[0] == 5.130985969530343);
-            Assert.That(geometryArrowPoint[1] == 52.089758941656768);
+            var reader = rowGroupReader.Column((int)geomColumnId).LogicalReader<Double?[]>();
+            var geoArowReader = new GeoArrowReader();
+            var geoms = geoArowReader.Read(reader);
+
+            var firstPoint = (Point)geoms[0].Geometry;
+
+            Assert.That(firstPoint.X == 5.130985969530343);
+            Assert.That(firstPoint.Y == 52.089758941656768);
         }
+
     }
 
     [Test]
@@ -45,7 +65,6 @@ public class Tests
 
         // geoarrow.multipolygon
         var rowGroupReader = file1.RowGroup(0);
-
 
         // todo: why is column 'xy' not specified?
         var geomColumnId = GetColumnId(rowGroupReader, "xy");
@@ -129,21 +148,101 @@ public class Tests
         geoColumn.Geometry_types.Add("Point");
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
-        var parquetFileWriter = new ParquetFileWriter(@"writing_sample11.parquet", columns, keyValueMetadata: geometadata);
+        var parquetFileWriter = new ParquetFileWriter(@"cities_wkb.parquet", columns, keyValueMetadata: geometadata);
         var rowGroup = parquetFileWriter.AppendRowGroup();
 
         var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
         nameWriter.WriteBatch(new string[] { "London", "Derby" });
-        
+
         var geom0 = new Point(5, 51);
         var geom1 = new Point(5.5, 51);
 
         var wkbWriter = new WKBWriter();
         var wkbBytes = new byte[][] { wkbWriter.Write(geom0), wkbWriter.Write(geom1) };
 
-        var geometryWriter = rowGroup.NextColumn().LogicalWriter<byte[]>();
-        geometryWriter.WriteBatch(wkbBytes);
+        var writer = rowGroup.NextColumn().LogicalWriter<byte[]>();
+        writer.WriteBatch(wkbBytes);
         parquetFileWriter.Close();
+    }
+
+
+    [Test]
+    public void WriteGeoParquetGeoArrowFile()
+    {
+        var columns = new Column[]
+        {
+            new Column<string>("city"),
+            new Column<Double?[]>("geometry")
+        };
+
+        var bbox = new double[] {  3.3583782525105832,
+                  50.750367484598314,
+                  7.2274984508458306,
+                  53.555014517907608};
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Bbox = bbox;
+        geoColumn.Encoding = "geoarrow.point";
+        geoColumn.Geometry_types.Add("Point");
+        geoColumn.Orientation = "counterclockwise";
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+        var parquetFileWriter = new ParquetFileWriter(@"d:/aaa/cities_arrow1.parquet", columns, keyValueMetadata: geometadata);
+        var rowGroup = parquetFileWriter.AppendRowGroup();
+
+        var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
+        nameWriter.WriteBatch(new string[] { "London", "Derby" });
+
+        var geom0 = new Point(5, 51);
+        var geom1 = new Point(5.5, 51);
+        var pointsArray = new double?[][] { new Double?[] { geom0.X, geom0.Y }, new Double?[] { geom1.X, geom1.Y } };
+        // todo add field 'xy' somewhere here
+        // type FixedSizeList.Name = "xy", "xyz" or "xyzm"
+        // Something with GroupNode 
+        // now it won't load in QGIS as geometry layer :-(
+        var geomColumn = rowGroup.NextColumn();
+        var writer = geomColumn.LogicalWriter<Double?[]>();
+
+        writer.WriteBatch(pointsArray);
+        parquetFileWriter.Close();
+    }
+
+    [Test]
+    public void WriteGeoParquetGroupNodeFile()
+    {
+        var nameNode = new PrimitiveNode(
+        "Name", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+        // but which logicaltype for double[]?
+        var xyNode = new PrimitiveNode(
+        "xy", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+        // Create a group node containing the two nested fields
+        var groupNode = new GroupNode(
+                "geometry", Repetition.Optional, new Node[] { nameNode });
+
+        // Create the root schema group that contains all top-level columns
+        var schema7 = new GroupNode(
+                "schema8", Repetition.Required, new Node[] { nameNode });
+
+        var propertiesBuilder = new WriterPropertiesBuilder();
+        propertiesBuilder.Compression(Compression.Snappy);
+        var writerProperties = propertiesBuilder.Build();
+        var fileWriter = new ParquetFileWriter(@"objects.parquet", schema7, writerProperties);
+
+        var messages = new Nested<string?>?[]
+        {
+            new Nested<string?>("London"),
+            new Nested<string?>("Derby")
+        };
+
+        var rowGroupWriter = fileWriter.AppendRowGroup();
+
+        var messagesWriter = rowGroupWriter.NextColumn().LogicalWriter<string>();
+        messagesWriter.WriteBatch(new string[] { "London", "Derby" });
+
+        fileWriter.Close();
+
     }
 }
 
