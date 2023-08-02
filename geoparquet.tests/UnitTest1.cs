@@ -207,7 +207,7 @@ public class Tests
         geoColumn.Orientation = "counterclockwise";
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
-        var parquetFileWriter = new ParquetFileWriter(@"d:/aaa/cities_arrow1.parquet", columns, keyValueMetadata: geometadata);
+        var parquetFileWriter = new ParquetFileWriter(@"cities_arrow1.parquet", columns, keyValueMetadata: geometadata);
         var rowGroup = parquetFileWriter.AppendRowGroup();
 
         var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
