@@ -1,6 +1,5 @@
 using Apache.Arrow.Ipc;
 using geoarrow;
-using Microsoft.VisualStudio.TestPlatform.CommunicationUtilities;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using ParquetSharp;
@@ -10,6 +9,27 @@ namespace GeoParquet.Tests;
 
 public class Tests
 {
+    [Test]
+    public async Task AddMetadata()
+    {
+        var file = @"d:\aaa\test.parquet";
+        var file1 = new ParquetFileReader(file);
+
+        var bbox = new double[] {  3.3583782525105832,
+                  50.750367484598314,
+                  7.2274984508458306,
+                  53.555014517907608};
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Bbox = bbox;
+        geoColumn.Encoding = "WKB";
+        geoColumn.Geometry_types.Add("Polygon");
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+
+
+    }
+
     [Test]
     public async Task ReadArrowPointFile()
     {
