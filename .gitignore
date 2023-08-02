@@ -349,3 +349,4 @@ MigrationBackup/
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
 *.ncrunchsolution
+/geoparquet-tools/Properties/launchSettings.json
