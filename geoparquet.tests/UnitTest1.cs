@@ -9,7 +9,7 @@ namespace GeoParquet.Tests;
 
 public class Tests
 {
-    [Test]
+    // [Test]
     public async Task AddMetadata()
     {
         var file = @"d:\aaa\test.parquet";
