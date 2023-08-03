@@ -10,9 +10,22 @@ on:
     branches: [ "main" ]
 
 jobs:
-  build:
-
-    runs-on: ubuntu-20.04
+  release:
+    name: Release
+    strategy:
+      matrix:
+        kind: ['linux', 'windows', 'macOS']
+        include:
+          - kind: linux
+            os: ubuntu-latest
+            target: linux-x64
+          - kind: windows
+            os: windows-latest
+            target: win-x64
+          - kind: macOS
+            os: macos-latest
+            target: osx-x64
+    runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v3
@@ -28,11 +41,12 @@ jobs:
       run: dotnet test --no-build --verbosity normal
     - name: Publish qm-tools
       run: |
+        release_name="geoparquet-tools-${{ matrix.target }}"
         cd geoparquet-tools
-        dotnet publish -c Release -r linux-x64 -o ./publish
+        dotnet publish -c Release -r linux-x64 -o ./publish/$release_name
         rm -rf publish/*.pdb
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
-        name: geoparquet-tools-linux
+        name: $release_name
         path: geoparquet-tools/publish
