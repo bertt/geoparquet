@@ -30,7 +30,7 @@ jobs:
       run: |
         cd geoparquet-tools
         dotnet publish -c Release -r linux-x64 -o ./publish
-	rm ./publish/geoparquet.pdb
+        rm -rf publish/*.pdb
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
