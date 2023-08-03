@@ -47,6 +47,8 @@ jobs:
         dotnet publish -c Release -r ${{ matrix.target }} -o ./publish/${{ env.release_name }}
         rm -rf publish/*.pdb
     - name: Upload
+      env:
+        release_name: geoparquet-tools-${{ matrix.target }}
       uses: actions/upload-artifact@v3
       with:
         name: ${{ env.release_name }}
