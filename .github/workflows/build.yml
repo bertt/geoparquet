@@ -45,7 +45,14 @@ jobs:
       run: |
         cd geoparquet-tools
         dotnet publish -c Release -r ${{ matrix.target }} -o ./publish/${{ env.release_name }}
+    - name: Remove PDBs
+      if: matrix.os != 'windows-latest'
+      run: |    
         rm -rf publish/*.pdb
+    - name: Remove PDBs for Windows
+      if: matrix.os == 'windows-latest'
+      run: |    
+        del publish/*.pdb
     - name: Upload
       env:
         release_name: geoparquet-tools-${{ matrix.target }}
