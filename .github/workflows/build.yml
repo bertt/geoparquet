@@ -51,7 +51,7 @@ jobs:
     - name: Remove PDBs Windows
       if: matrix.os == 'windows-latest'
       run: |    
-        del /s /q publish/*.pdb
+        del /s publish/*.pdb
     - env:
         release_name: geoparquet-tools-${{ matrix.target }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
