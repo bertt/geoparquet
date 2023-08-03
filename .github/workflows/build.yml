@@ -43,12 +43,8 @@ jobs:
       run: |
         cd geoparquet-tools
         dotnet publish -c Release -r ${{ matrix.target }} -o publish
-        rm -rf *.pdb
-        if [ "${{ matrix.target }}" == "win-x64" ]; then
-          7z a -tzip geoparquet-tools-${{ matrix.target }}.zip publish
-        else
-          tar czvf geoparquet-tools-${{ matrix.target }}.tar.gz publish
-        fi
+        rm -f ./publish/*.pdb
+        tar czvf geoparquet-tools-${{ matrix.target }}.tar.gz -C publish
         rm -r publish           
     - name: Publish
       env:
