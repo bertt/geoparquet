@@ -54,6 +54,16 @@ In development: geoparquet-tools, a command line tool for inspecting GeoParquet 
 
 See releases for first version, build for Linux, Mac, Windows
 
+Install
+
+```
+$ wget https://github.com/bertt/geoparquet/releases/download/0.1/geoparquet-tools-linux-x64.tar.gz
+$ tar -xf geoparquet-tools-linux-x64.tar.gz
+$ ./geoaparquet-tools
+```
+
+Options:
+
 ```
 -i <file> : inspect GeoParquet file
 -h : help
