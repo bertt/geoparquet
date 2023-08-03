@@ -9,10 +9,7 @@ internal class Program
 {
     static async Task<int> Main(string[] args)
     {
-        System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
-        System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
-        string version = fvi.FileVersion;        
-        Console.WriteLine($"geoparquet-tools {version}");
+        Console.WriteLine($"geoparquet-tools");
         if (args.Length == 0)
         {
             args = new string[] { "-h" };
