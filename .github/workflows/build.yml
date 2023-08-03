@@ -51,4 +51,4 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       uses: softprops/action-gh-release@v1
       with:
-        files: "./geoparquet-tools/geoparquet-tools-${{ matrix.target }}tar.gz*"
+        files: "./geoparquet-tools/geoparquet-tools-${{ matrix.target }}tar.gz"
