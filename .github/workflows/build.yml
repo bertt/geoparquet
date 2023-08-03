@@ -44,11 +44,11 @@ jobs:
         cd geoparquet-tools
         dotnet publish -c Release -r ${{ matrix.target }} -o publish
         rm -f ./publish/*.pdb
-        tar czvf geoparquet-tools-${{ matrix.target }}.tar.gz -C publish
-        rm -r publish           
+        cd publish
+        tar czvf ../geoparquet-tools-${{ matrix.target }}.tar.gz .
     - name: Publish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       uses: softprops/action-gh-release@v1
       with:
-        files: "./geoparquet-tools/geoparquet-tools-${{ matrix.target }}.*"
+        files: "./geoparquet-tools/geoparquet-tools-${{ matrix.target }}tar.gz*"
