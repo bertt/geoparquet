@@ -42,9 +42,10 @@ jobs:
     - name: Publish geoparquet-tools
       shell: bash
       run: |
-        dotnet tool install -g dotnetCampus.TagToVersion
-        dotnet TagToVersion -t ${{ github.ref }}
         cd geoparquet-tools
+        dotnet tool install -g dotnetCampus.TagToVersion
+        dotnet build -c Release
+        dotnet TagToVersion -t ${{ github.ref }}
         dotnet publish -c Release -r ${{ matrix.target }} -o publish
         rm -f ./publish/*.pdb
         cd publish
