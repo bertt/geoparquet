@@ -11,10 +11,13 @@ public static class GeoParquetExtensions
         return geoMetaData;
     }
 
-    public static GeoParquet GetGeoMetadata(this ParquetFileReader parquetFileReader)
+    public static GeoParquet? GetGeoMetadata(this ParquetFileReader parquetFileReader)
     {
         var geoMetaData = parquetFileReader.GetGeoMetadataAsString();
-        var geoParquet = JsonSerializer.Deserialize<GeoParquet>(geoMetaData);
-        return geoParquet;
+        if(geoMetaData != null)
+        {
+            return JsonSerializer.Deserialize<GeoParquet>(geoMetaData);
+        }
+        return null;
     }
 }

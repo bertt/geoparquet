@@ -56,8 +56,6 @@ In development: geoparquet-tools, a command line tool for inspecting GeoParquet 
 -i <file> : inspect GeoParquet file
 -h : help
 ```
-
-
 ## Sample code
 
 In these samples NetTopologySuite (https://github.com/NetTopologySuite/NetTopologySuite) is used for handling geometries, but any library that can handle 
