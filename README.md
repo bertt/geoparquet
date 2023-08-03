@@ -59,7 +59,7 @@ Install
 ```
 $ wget https://github.com/bertt/geoparquet/releases/download/0.1/geoparquet-tools-linux-x64.tar.gz
 $ tar -xf geoparquet-tools-linux-x64.tar.gz
-$ ./geoaparquet-tools
+$ ./geoparquet-tools
 ```
 
 Options:
