@@ -51,7 +51,7 @@ jobs:
     - name: Remove PDBs Windows
       if: matrix.os == 'windows-latest'
       run: |    
-        del /s publish/*.pdb
+	Get-ChildItem * -Include *.pdb -Recurse | Remove-Item
     - name: Upload
       env:
           release_name: geoparquet-tools-${{ matrix.target }}
