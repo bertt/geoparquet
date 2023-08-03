@@ -9,7 +9,9 @@ internal class Program
 {
     static async Task<int> Main(string[] args)
     {
-        var version = typeof(Program).Assembly.GetName().Version;
+        System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+        System.Diagnostics.FileVersionInfo fvi = System.Diagnostics.FileVersionInfo.GetVersionInfo(assembly.Location);
+        string version = fvi.FileVersion;        
         Console.WriteLine($"geoparquet-tools {version}");
         if (args.Length == 0)
         {
