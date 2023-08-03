@@ -20,7 +20,7 @@ internal class Program
             name: "-i",
             description: "The file to read and display on the console.");
 
-        var rootCommand = new RootCommand("qm-tools - quantized mesh tools");
+        var rootCommand = new RootCommand("geoparquet-tools");
         rootCommand.AddOption(fileOption);
 
         rootCommand.SetHandler((file) =>
