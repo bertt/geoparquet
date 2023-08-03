@@ -49,16 +49,14 @@ jobs:
         release_name: geoparquet-tools-${{ matrix.target }}
       run: |
         cd geoparquet-tools
-        dotnet publish -c Release -r "${{ matrix.target }}"" -o "${{env.release_name}}"
+        dotnet publish -c Release -r "${{ matrix.target }}" -o "${{env.release_name}}"
         rm -rf *.pdb
-        # Pack files
         if [ "${{ matrix.target }}" == "win-x64" ]; then
           7z a -tzip "${{env.release_name}}.zip" "./${{env.release_name}}/*"
         else
           tar czvf "${{env.release_name}}.tar.gz" "${{env.release_name}}"
         fi
-        # Delete output directory
-        rm -r "${{env.release_name}}"                
+        rm -r "${{env.release_name}}"           
     - name: Publish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
