@@ -48,9 +48,11 @@ dictionary can be passed to the ParquetFileWriter constructor.
 
 See sample code below for reading/writing samples.
 
-## cli geoparquet-tools
+## geoparquet-tools
 
 In development: geoparquet-tools, a command line tool for inspecting GeoParquet files.
+
+See releases for first version, build for Linux, Mac, Windows
 
 ```
 -i <file> : inspect GeoParquet file
