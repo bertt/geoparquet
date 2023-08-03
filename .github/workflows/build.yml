@@ -40,8 +40,9 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish geoparquet-tools
+      env:
+        release_name: geoparquet-tools-${{ matrix.target }}
       run: |
-        release_name="geoparquet-tools-${{ matrix.target }}"
         cd geoparquet-tools
         dotnet publish -c Release -r ${{ matrix.target }} -o ./publish/${{ env.release_name }}
         rm -rf publish/*.pdb
