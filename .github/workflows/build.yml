@@ -39,23 +39,23 @@ jobs:
     - name: Test
       run: dotnet test --no-build --verbosity normal
     - name: Publish geoparquet-tools
-      env:
+      shell: bash
+      run: |
         release_name: geoparquet-tools-${{ matrix.target }}
-      run: |
         cd geoparquet-tools
-        dotnet publish -c Release -r ${{ matrix.target }} -o ./publish/${{ env.release_name }}
-    - name: Remove PDBs
-      if: matrix.os != 'windows-latest'
-      run: |    
-        rm -rf publish/*.pdb
-    - name: Remove PDBs Windows
-      if: matrix.os == 'windows-latest'
-      run: |
-        Get-ChildItem * -Include *.pdb -Recurse | Remove-Item
-    - name: Upload
-      env:
-          release_name: geoparquet-tools-${{ matrix.target }}
-      uses: actions/upload-artifact@v3
+        dotnet publish -c Release -r "${{ matrix.target }}"" -o "$release_name"
+        rm -rf *.pdb
+        # Pack files
+        if [ "${{ matrix.target }}" == "win-x64" ]; then
+          7z a -tzip "${release_name}.zip" "./${release_name}/*"
+        else
+          tar czvf "${release_name}.tar.gz" "$release_name"
+        fi
+        # Delete output directory
+        rm -r "$release_name"                
+    - name: Publish
+      uses: softprops/action-gh-release@v1
       with:
-          name: ${{ env.release_name }}
-          path: geoparquet-tools/publish
+        files: "geparquet-tools-${{ matrix.target }}.*"
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
