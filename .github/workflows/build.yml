@@ -39,14 +39,14 @@ jobs:
       run: dotnet build --no-restore
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Publish qm-tools
+    - name: Publish geoparquet-tools
       run: |
         release_name="geoparquet-tools-${{ matrix.target }}"
         cd geoparquet-tools
-        dotnet publish -c Release -r linux-x64 -o ./publish/$release_name
+        dotnet publish -c Release -r ${{ matrix.target }} -o ./publish/$release_name
         rm -rf publish/*.pdb
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
-        name: $release_name
+        name: geoparquet-tools
         path: geoparquet-tools/publish
