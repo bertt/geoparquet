@@ -15,7 +15,7 @@ internal class Program
         var assembly = Assembly.GetExecutingAssembly();
         var assemblyVersion = assembly.GetName().Version;
 
-        Console.WriteLine($"Version" + assemblyVersion);
+        Console.WriteLine($"Version: " + assemblyVersion);
 
         if (args.Length == 0)
         {
