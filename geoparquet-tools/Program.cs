@@ -2,6 +2,7 @@
 using System.CommandLine;
 using GeoParquet;
 using System.Text.Json;
+using System.Reflection;
 
 namespace geoparquet_tools;
 
