@@ -10,6 +10,12 @@ internal class Program
     static async Task<int> Main(string[] args)
     {
         Console.WriteLine($"geoparquet-tools");
+
+        var assembly = Assembly.GetExecutingAssembly();
+        var assemblyVersion = assembly.GetName().Version;
+
+        Console.WriteLine($"Version" + assemblyVersion);
+
         if (args.Length == 0)
         {
             args = new string[] { "-h" };
