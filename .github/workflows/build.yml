@@ -32,7 +32,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 8.0.x
     - name: Restore dependencies
       run: dotnet restore
     - name: Build
@@ -49,10 +49,6 @@ jobs:
       if: matrix.os != 'windows-latest'
       run: |    
         rm -rf publish/*.pdb
-    - name: Remove PDBs for Windows
-      if: matrix.os == 'windows-latest'
-      run: |    
-        del publish/*.pdb
     - name: Upload
       env:
         release_name: geoparquet-tools-${{ matrix.target }}
