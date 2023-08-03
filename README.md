@@ -48,10 +48,21 @@ dictionary can be passed to the ParquetFileWriter constructor.
 
 See sample code below for reading/writing samples.
 
+## cli geoparquet-tools
+
+In development: geoparquet-tools, a command line tool for inspecting GeoParquet files.
+
+```
+-i <file> : inspect GeoParquet file
+-h : help
+```
+
+
 ## Sample code
 
 In these samples NetTopologySuite (https://github.com/NetTopologySuite/NetTopologySuite) is used for handling geometries, but any library that can handle 
 WKB geometries can be used.
+
 
 ### Reading
 

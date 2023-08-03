@@ -1,6 +1,7 @@
 ﻿using ParquetSharp;
 using System.CommandLine;
 using GeoParquet;
+using System.Text.Json;
 
 namespace geoparquet_tools;
 
@@ -34,16 +35,24 @@ internal class Program
     {
         if (file != null)
         {
-            var gpq = new ParquetFileReader(file.FullName);
-            var geoParquet = gpq.GetGeoMetadataAsString();
+            if (File.Exists(file.FullName)){
+                var gpq = new ParquetFileReader(file.FullName);
+                var geoParquet = gpq.GetGeoMetadataAsString();
 
-            if (geoParquet != null)
-            {
-                Console.Write("GeoMetaData: " + geoParquet);
+                if (geoParquet != null)
+                {
+                    var jDoc= JsonDocument.Parse(geoParquet);
+                    var formatted = JsonSerializer.Serialize(jDoc, new JsonSerializerOptions { WriteIndented = true });
+                    Console.Write("GeoMetaData: " + formatted);
+                }
+                else
+                {
+                    Console.WriteLine("No geo metadata found");
+                }
             }
             else
             {
-                Console.WriteLine("No geo metadata found");
+                Console.WriteLine("File not found: " + file.FullName);
             }
         }
     }
