@@ -43,7 +43,9 @@ jobs:
       shell: bash
       run: |
         cd geoparquet-tools
-        dotnet publish -c Release -r ${{ matrix.target }} -o publish
+        t=$(git describe --tags `git rev-list --tags --max-count=1`)
+        echo latest tag $t
+        dotnet publish -c Release -r ${{ matrix.target }} -o publish /p:AssemblyVersion=$t
         rm -f ./publish/*.pdb
         cd publish
 
