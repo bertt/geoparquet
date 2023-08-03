@@ -43,7 +43,7 @@ jobs:
       run: |
         release_name: geoparquet-tools-${{ matrix.target }}
         cd geoparquet-tools
-        dotnet publish -c Release -r "${{ matrix.target }}"" -o "$release_name"
+        dotnet publish -c Release -r "${{ matrix.target }}"" -o "${release_name}"
         rm -rf *.pdb
         # Pack files
         if [ "${{ matrix.target }}" == "win-x64" ]; then
@@ -52,7 +52,7 @@ jobs:
           tar czvf "${release_name}.tar.gz" "$release_name"
         fi
         # Delete output directory
-        rm -r "$release_name"                
+        rm -r "${release_name}"                
     - name: Publish
       uses: softprops/action-gh-release@v1
       with:
