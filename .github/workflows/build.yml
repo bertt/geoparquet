@@ -42,17 +42,17 @@ jobs:
       shell: bash
       run: |
         cd geoparquet-tools
-        dotnet publish -c Release -r "${{ matrix.target }}" -o "geoparquet-tools"
+        dotnet publish -c Release -r ${{ matrix.target }} -o publish
         rm -rf *.pdb
         if [ "${{ matrix.target }}" == "win-x64" ]; then
-          7z a -tzip geoparquet-tools-${{ matrix.target }}.zip geoparquet-tools
+          7z a -tzip geoparquet-tools-${{ matrix.target }}.zip publish
         else
-          tar czvf geoparquet-tools-${{ matrix.target }}.tar.gz geoparquet-tools
+          tar czvf geoparquet-tools-${{ matrix.target }}.tar.gz publish
         fi
-        rm -r geoparquet-tools           
+        rm -r publish           
     - name: Publish
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       uses: softprops/action-gh-release@v1
       with:
-        files: "geoparquet-tools-${{ matrix.target }}.tar.gz"
+        files: "./geoparquet-tools/geoparquet-tools-${{ matrix.target }}.tar.gz"
