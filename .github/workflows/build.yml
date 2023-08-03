@@ -48,5 +48,5 @@ jobs:
     - name: Upload
       uses: actions/upload-artifact@v3
       with:
-        name: geoparquet-tools
+        name: ${{ env.release_name }}
         path: geoparquet-tools/publish
