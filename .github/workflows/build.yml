@@ -43,7 +43,7 @@ jobs:
       run: |
         release_name="geoparquet-tools-${{ matrix.target }}"
         cd geoparquet-tools
-        dotnet publish -c Release -r ${{ matrix.target }} -o ./publish/$release_name
+        dotnet publish -c Release -r ${{ matrix.target }} -o ./publish/${{ env.release_name }}
         rm -rf publish/*.pdb
     - name: Upload
       uses: actions/upload-artifact@v3
