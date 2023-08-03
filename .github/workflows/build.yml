@@ -16,7 +16,8 @@ jobs:
         kind: ['linux', 'windows', 'macOS']
         include:
           - kind: linux
-            os: ubuntu-latest
+            # ubuntu-latest gives gclib error? 
+            os: ubuntu-20.04
             target: linux-x64
           - kind: windows
             os: windows-latest
