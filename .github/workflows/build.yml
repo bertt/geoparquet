@@ -52,10 +52,10 @@ jobs:
       if: matrix.os == 'windows-latest'
       run: |    
         del /s publish/*.pdb
-    - env:
-        release_name: geoparquet-tools-${{ matrix.target }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      name: ${{ env.release_name }}
-      uses: softprops/action-gh-release@v1
+    - name: Upload
+      env:
+          release_name: geoparquet-tools-${{ matrix.target }}
+      uses: actions/upload-artifact@v3
       with:
-        files: geoparquet-tools/publish
+          name: ${{ env.release_name }}
+          path: geoparquet-tools/publish
