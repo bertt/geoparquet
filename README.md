@@ -14,7 +14,7 @@ Sample GeoParquet JSON metadata:
 
 ```json
 {
-   "version":"1.0.0-beta.1",
+   "version":"1.0.0",
    "primary_column":"geometry",
    "columns":{
       "geometry":{
@@ -162,7 +162,7 @@ parquetFileWriter.Close();
 
 ## Dependencies
 
-- ParquetSharp 14 https://github.com/G-Research/ParquetSharp
+- ParquetSharp 13 https://github.com/G-Research/ParquetSharp
 
 ## Schema generation 
 
