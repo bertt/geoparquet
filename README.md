@@ -1,6 +1,6 @@
 # GeoParquet
 
-.NET 6 Reader/Writer library for GeoParquet files.
+.NET 8 Reader/Writer library for GeoParquet files.
 
 https://geoparquet.org/
 
@@ -83,7 +83,7 @@ var file = "testfixtures/gemeenten2016_1.0.parquet";
 var file1 = new ParquetFileReader(file);
 
 var geoParquet = file1.GetGeoMetadata();
-Assert.That(geoParquet.Version == "1.0.0-beta.1");
+Assert.That(geoParquet.Version == "1.0.0");
 
 var rowGroupReader = file1.RowGroup(0);
 var gemName = rowGroupReader.Column(33).LogicalReader<String>().First();
@@ -162,7 +162,7 @@ parquetFileWriter.Close();
 
 ## Dependencies
 
-- ParquetSharp 12 https://github.com/G-Research/ParquetSharp
+- ParquetSharp 14 https://github.com/G-Research/ParquetSharp
 
 ## Schema generation 
 
@@ -171,7 +171,7 @@ GeoParquet metadata classes are generated from JSON schema using NJsonSchema.Cod
 
 Schema used: 
 
-https://geoparquet.org/releases/v1.0.0-beta.1/schema.json
+https://geoparquet.org/releases/v1.0.0/schema.json
 
 # Roadmap
 
@@ -184,6 +184,8 @@ https://geoparquet.org/releases/v1.0.0-beta.1/schema.json
 - add (spatial) filters.
 
 ## History
+
+2023-11-16: version 1.0 - using schema v1.0.0, ParquetSharp to 13 - to .NET 8
 
 2023-07-13: version 0.5 - using schema v1.0.0-beta.1, ParquetSharp to 12.0.1
 

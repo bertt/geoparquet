@@ -9,25 +9,6 @@ namespace GeoParquet.Tests;
 
 public class Tests
 {
-    // [Test]
-    public void AddMetadata()
-    {
-        var file = @"test.parquet";
-        var file1 = new ParquetFileReader(file);
-
-        var bbox = new double[] {  3.3583782525105832,
-                  50.750367484598314,
-                  7.2274984508458306,
-                  53.555014517907608};
-
-        var geoColumn = new GeoColumn();
-        geoColumn.Bbox = bbox;
-        geoColumn.Encoding = "WKB";
-        geoColumn.Geometry_types.Add("Polygon");
-        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
-        // todo add metadata
-    }
-
     [Test]
     public void ReadArrowPointFile()
     {
@@ -52,7 +33,6 @@ public class Tests
     public void ReadUtrechtKunstwerkenFile()
     {
         var file = "testfixtures/utrecht_kunstwerken.parquet";
-        //var file = "d:/aaa/cities_arrow1.parquet";
         var file1 = new ParquetFileReader(file);
         var geoParquet = file1.GetGeoMetadata();
         var rowGroupReader = file1.RowGroup(0);
@@ -268,7 +248,6 @@ public class Tests
         messagesWriter.WriteBatch(new string[] { "London", "Derby" });
 
         fileWriter.Close();
-
     }
 }
 

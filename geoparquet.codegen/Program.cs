@@ -2,8 +2,8 @@
 using NJsonSchema.CodeGeneration.CSharp;
 
 // schema sources:
-// - https://geoparquet.org/releases/v1.0.0-beta.1/schema.json
-var json = File.ReadAllText("./1.0.0-beta.1/schema.json");
+// - https://geoparquet.org/releases/v1.0.0/schema.json
+var json = File.ReadAllText("./1.0.0/schema.json");
 
 // there are two manual actions :-(
 //

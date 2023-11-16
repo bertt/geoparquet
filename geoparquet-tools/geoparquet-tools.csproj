@@ -3,7 +3,7 @@
   <PropertyGroup>
 	  <PublishAot>true</PublishAot>
 	  <OutputType>Exe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net8.0</TargetFramework>
     <RootNamespace>geoparquet_tools</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>

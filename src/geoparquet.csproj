@@ -1,13 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net6.0</TargetFramework>
+		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<FileVersion>0.5</FileVersion>
-		<AssemblyVersion>0.5</AssemblyVersion>
-		<PackageReleaseNotes>version 0.5</PackageReleaseNotes>
+		<FileVersion>1.0</FileVersion>
+		<AssemblyVersion>1.0</AssemblyVersion>
+		<Version>1.0</Version>
+		<PackageReleaseNotes>version 1.0</PackageReleaseNotes>
 		<RepositoryUrl>https://github.com/bertt/geoparquet</RepositoryUrl>
 		<RepositoryType>git</RepositoryType>
 		<PackageTags>parquet, geoparquet, wkb, geoarrow, arrow</PackageTags>
@@ -18,7 +19,6 @@
 		<Company />
 		<PackageId>bertt.geoparquet</PackageId>
 		<Title>bertt.geoparquet</Title>
-		<Version>0.5</Version>
 		<Authors>Bert Temme</Authors>
 	</PropertyGroup>
 
@@ -31,7 +31,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="ParquetSharp" Version="12.0.1" />
+		<PackageReference Include="ParquetSharp" Version="13.0.0-beta1" />
 	</ItemGroup>
 
 </Project>
