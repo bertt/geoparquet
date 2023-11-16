@@ -1,5 +1,7 @@
 # GeoParquet
 
+ ![Build status](https://github.com/bertt/geoparquet/workflows/build.yml/badge.svg)[![Nuget](https://img.shields.io/nuget/vpre/bertt.geoparquet)](https://www.nuget.org/packages/bertt.geoparquet)
+
 .NET 8 Reader/Writer library for GeoParquet files.
 
 https://geoparquet.org/
