@@ -1,4 +1,4 @@
-name: dotnet package
+name: Build server status
 
 on: [push]
 
