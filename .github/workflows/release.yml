@@ -1,0 +1,64 @@
+# This workflow will build a .NET project
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-net
+
+name: .NET
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    name: Release
+    strategy:
+      matrix:
+        kind: ['linux', 'windows', 'macOS']
+        include:
+          - kind: linux
+            # ubuntu-latest gives gclib error? 
+            os: ubuntu-20.04
+            target: linux-x64
+          - kind: windows
+            os: windows-latest
+            target: win-x64
+          - kind: macOS
+            os: macos-latest
+            target: osx-x64
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+    - name: Publish geoparquet-tools
+      shell: bash
+      run: |
+        cd geoparquet-tools
+        dotnet tool install -g dotnetCampus.TagToVersion
+        dotnet build -c Release
+        dotnet TagToVersion -t ${{ github.ref }}
+        dotnet publish -c Release -r ${{ matrix.target }} -o publish
+        rm -f ./publish/*.pdb
+        cd publish
+
+        if [ "${{ matrix.target }}" == "win-x64" ]; then
+          7z a -tzip ../geoparquet-tools-${{ matrix.target }}.zip .
+        else
+          tar czvf ../geoparquet-tools-${{ matrix.target }}.tar.gz .
+        fi
+
+    - name: Publish
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
+      with:
+        files: "./geoparquet-tools/geoparquet-tools-${{ matrix.target }}.*"
