@@ -187,6 +187,8 @@ https://geoparquet.org/releases/v1.0.0/schema.json
 
 ## History
 
+2023-11-26: version 1.0.1 - target .net 6 and 8
+
 2023-11-16: version 1.0 - using schema v1.0.0, ParquetSharp to 13 - to .NET 8
 
 2023-07-13: version 0.5 - using schema v1.0.0-beta.1, ParquetSharp to 12.0.1
