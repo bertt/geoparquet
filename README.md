@@ -164,7 +164,7 @@ parquetFileWriter.Close();
 
 ## Dependencies
 
-- ParquetSharp 13 https://github.com/G-Research/ParquetSharp
+- ParquetSharp 15 https://github.com/G-Research/ParquetSharp
 
 ## Schema generation 
 

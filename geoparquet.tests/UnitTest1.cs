@@ -99,7 +99,7 @@ public class Tests
 
             var rowGroupReader = file1.RowGroup(0);
             var gemName = rowGroupReader.Column(3).LogicalReader<String>().First();
-            Assert.IsTrue(gemName == "Appingedam");
+            Assert.That(gemName == "Appingedam");
 
             var geomColumnId = GetColumnId(rowGroupReader, geoParquet.Primary_column);
 
