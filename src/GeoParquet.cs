@@ -28,7 +28,7 @@ namespace GeoParquet
 
         [System.Text.Json.Serialization.JsonPropertyName("columns")]
         [System.ComponentModel.DataAnnotations.Required]
-        public System.Collections.Generic.IDictionary<string, GeoColumn> Columns { get; set; } = new System.Collections.Generic.Dictionary<string, GeoColumn>();
+        public System.Collections.Generic.IDictionary<string, Anonymous> Columns { get; set; } = new System.Collections.Generic.Dictionary<string, Anonymous>();
 
 
 
@@ -44,11 +44,12 @@ namespace GeoParquet
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "11.0.1.0 (Newtonsoft.Json v13.0.0.0)")]
-    public partial class GeoColumn
+    public partial class Anonymous
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("encoding")]
         [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.ComponentModel.DataAnnotations.RegularExpression(@"^(WKB|point|linestring|polygon|multipoint|multilinestring|multipolygon)$")]
         public string Encoding { get; set; }
 
 
@@ -74,6 +75,10 @@ namespace GeoParquet
         public double Epoch { get; set; }
 
 
+        [System.Text.Json.Serialization.JsonPropertyName("covering")]
+        public Covering Covering { get; set; }
+
+
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -97,6 +102,71 @@ namespace GeoParquet
         [System.Runtime.Serialization.EnumMember(Value = @"spherical")]
         Spherical = 1,
 
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "11.0.1.0 (Newtonsoft.Json v13.0.0.0)")]
+    public partial class Covering
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("bbox")]
+        [System.ComponentModel.DataAnnotations.Required]
+        public Bbox Bbox { get; set; } = new Bbox();
+
+
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "11.0.1.0 (Newtonsoft.Json v13.0.0.0)")]
+    public partial class Bbox
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("xmin")]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MinLength(2)]
+        [System.ComponentModel.DataAnnotations.MaxLength(2)]
+        public System.Tuple<string, object> Xmin { get; set; } = new System.Tuple<string, object>();
+
+
+        [System.Text.Json.Serialization.JsonPropertyName("xmax")]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MinLength(2)]
+        [System.ComponentModel.DataAnnotations.MaxLength(2)]
+        public System.Tuple<string, object> Xmax { get; set; } = new System.Tuple<string, object>();
+
+
+        [System.Text.Json.Serialization.JsonPropertyName("ymin")]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MinLength(2)]
+        [System.ComponentModel.DataAnnotations.MaxLength(2)]
+        public System.Tuple<string, object> Ymin { get; set; } = new System.Tuple<string, object>();
+
+
+        [System.Text.Json.Serialization.JsonPropertyName("ymax")]
+        [System.ComponentModel.DataAnnotations.Required]
+        [System.ComponentModel.DataAnnotations.MinLength(2)]
+        [System.ComponentModel.DataAnnotations.MaxLength(2)]
+        public System.Tuple<string, object> Ymax { get; set; } = new System.Tuple<string, object>();
+
+
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
 
     }
 }
