@@ -28,7 +28,7 @@ namespace GeoParquet
 
         [System.Text.Json.Serialization.JsonPropertyName("columns")]
         [System.ComponentModel.DataAnnotations.Required]
-        public System.Collections.Generic.IDictionary<string, Anonymous> Columns { get; set; } = new System.Collections.Generic.Dictionary<string, Anonymous>();
+        public System.Collections.Generic.IDictionary<string, GeoColumn> Columns { get; set; } = new System.Collections.Generic.Dictionary<string, GeoColumn>();
 
 
 
@@ -44,7 +44,7 @@ namespace GeoParquet
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "11.0.1.0 (Newtonsoft.Json v13.0.0.0)")]
-    public partial class Anonymous
+    public partial class GeoColumn
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("encoding")]
@@ -134,28 +134,32 @@ namespace GeoParquet
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(2)]
         [System.ComponentModel.DataAnnotations.MaxLength(2)]
-        public System.Tuple<string, object> Xmin { get; set; } = new System.Tuple<string, object>();
+        public double[] Xmin { get; set; }
+        // public System.Tuple<string, object> Xmin { get; set; } = new System.Tuple<string, object>();
 
 
         [System.Text.Json.Serialization.JsonPropertyName("xmax")]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(2)]
         [System.ComponentModel.DataAnnotations.MaxLength(2)]
-        public System.Tuple<string, object> Xmax { get; set; } = new System.Tuple<string, object>();
+        public double[] Xmax { get; set; }
+        // public System.Tuple<string, object> Xmax { get; set; } = new System.Tuple<string, object>();
 
 
         [System.Text.Json.Serialization.JsonPropertyName("ymin")]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(2)]
         [System.ComponentModel.DataAnnotations.MaxLength(2)]
-        public System.Tuple<string, object> Ymin { get; set; } = new System.Tuple<string, object>();
+        public double[] Ymin { get; set; }
+        // public System.Tuple<string, object> Ymin { get; set; } = new System.Tuple<string, object>();
 
 
         [System.Text.Json.Serialization.JsonPropertyName("ymax")]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(2)]
         [System.ComponentModel.DataAnnotations.MaxLength(2)]
-        public System.Tuple<string, object> Ymax { get; set; } = new System.Tuple<string, object>();
+        // public System.Tuple<string, object> Ymax { get; set; } = new System.Tuple<string, object>();
+        public double[] Ymax { get; set; }
 
 
 
