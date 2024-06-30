@@ -3,7 +3,7 @@ using NJsonSchema.CodeGeneration.CSharp;
 
 // schema sources:
 // - https://geoparquet.org/releases/v1.0.0/schema.json
-var json = File.ReadAllText("./1.0.0/schema.json");
+var json = File.ReadAllText("./1.1.0/schema.json");
 
 // there are two manual actions :-(
 //
@@ -15,6 +15,10 @@ var json = File.ReadAllText("./1.0.0/schema.json");
 //             ]
 //            },
 // 2] Change in resulting file GeoParquet.cs - Rename object Anonymous to GeoColumn
+//
+// 3] Change in resulting file GeoParquet.cs - Change tuples xmin, xmax, ymin, ymax
+//   from: public System.Tuple<string, object> Xmin { get; set; } = new System.Tuple<string, object>();
+//   to: public double[] Xmin { get; set; }
 
 var schema = await JsonSchema.FromJsonAsync(json);
 var settings = new CSharpGeneratorSettings() { JsonLibrary = CSharpJsonLibrary.SystemTextJson };
