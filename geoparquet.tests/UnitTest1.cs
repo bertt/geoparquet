@@ -10,12 +10,12 @@ namespace GeoParquet.Tests;
 public class Tests
 {
     [Test]
-    public void ReadArrowPointFile()
+    public async Task ReadArrowPointFile()
     {
         var file = "testfixtures/gemeenten2016.arrow";
         var stream = File.OpenRead(file);
         var reader = new ArrowFileReader(stream);
-        // Next line gives: FixedSizeList is unsupported...
+        // Next line gives message about compression see geoarrow-cs for solution
         // var recordBatch = await reader.ReadNextRecordBatchAsync();
     }
 
@@ -26,7 +26,7 @@ public class Tests
         var file1 = new ParquetFileReader(file);
         // failed attempt to go to dataframe
         // next line gives error: Unsupported LogicalType Double?[]
-        // var dataframe =file1.ToDataFrame();
+        //var dataframe =file1.ToDataFrame();
     }
 
     [Test]
