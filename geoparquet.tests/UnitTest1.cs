@@ -3,11 +3,34 @@ using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using ParquetSharp;
 using ParquetSharp.Schema;
+using System.Text.Json;
 
 namespace GeoParquet.Tests;
 
 public class Tests
 {
+    [Test]
+    public void ReadExampleMetadataJson()
+    {
+        // data from https://github.com/opengeospatial/geoparquet/blob/main/examples/example_metadata.json
+        var file = "testfixtures/example_metadata.json";
+        var json = File.ReadAllText(file);
+
+        var geoParquet = JsonSerializer.Deserialize<GeoParquet>(json);
+        Assert.That(geoParquet.Version == "1.2.0-dev");
+
+
+    }
+    [Test]
+    // data from https://github.com/opengeospatial/geoparquet/blob/main/examples/example_metadata_point.json
+    public void ReadExampleMetadataPoint()
+    {
+        var file = "testfixtures/example_metadata_point.json";
+        var json = File.ReadAllText(file);
+
+        var geoParquet = JsonSerializer.Deserialize<GeoParquet>(json);
+        Assert.That(geoParquet.Version == "1.2.0-dev");
+    }
     [Test]
     public async Task ReadArrowPointFile()
     {
@@ -116,13 +139,7 @@ public class Tests
             new Column<byte[]>("geometry")
         };
 
-        var bbox = new double[] {  3.3583782525105832,
-                  50.750367484598314,
-                  7.2274984508458306,
-                  53.555014517907608};
-
         var geoColumn = new GeoColumn();
-        geoColumn.Bbox = bbox;
         geoColumn.Encoding = "WKB";
         geoColumn.Geometry_types.Add("Point");
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
@@ -154,13 +171,7 @@ public class Tests
             new Column<Double?[]>("geometry")
         };
 
-        var bbox = new double[] {  3.3583782525105832,
-                  50.750367484598314,
-                  7.2274984508458306,
-                  53.555014517907608};
-
         var geoColumn = new GeoColumn();
-        geoColumn.Bbox = bbox;
         geoColumn.Encoding = "geoarrow.point";
         geoColumn.Geometry_types.Add("Point");
         geoColumn.Orientation = "counterclockwise";

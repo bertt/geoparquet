@@ -166,15 +166,6 @@ parquetFileWriter.Close();
 
 - ParquetSharp 15 https://github.com/G-Research/ParquetSharp
 
-## Schema generation 
-
-GeoParquet metadata classes are generated from JSON schema using NJsonSchema.CodeGeneration.CSharp (https://github.com/RicoSuter/NJsonSchema), see console project 
-'geoparquet.codegen' for details.
-
-Schema used: 
-
-https://geoparquet.org/releases/v1.0.0/schema.json
-
 # Roadmap
 
 - Add support for multiple geometry columns;

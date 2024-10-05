@@ -1,0 +1,12 @@
+﻿{
+  "columns": {
+    "geometry": {
+      "encoding": "point",
+      "geometry_types": [
+        "Point"
+      ]
+    }
+  },
+  "primary_column": "geometry",
+  "version": "1.2.0-dev"
+}

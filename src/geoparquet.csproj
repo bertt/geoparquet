@@ -23,7 +23,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<None Include="..\.editorconfig" Link=".editorconfig" />
 		<None Include="..\README.md">
 			<Pack>True</Pack>
 			<PackagePath>\</PackagePath>
@@ -31,6 +30,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="OneOf" Version="3.0.271" />
 		<PackageReference Include="ParquetSharp" Version="16.1.0" />
 	</ItemGroup>
 
