@@ -16,8 +16,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "build", "build", "{92F55511
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "geoparquet.codegen", "geoparquet.codegen\geoparquet.codegen.csproj", "{66E7D036-F63B-46D4-AB4C-69EC1E21C437}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "geoarrow", "geoarrow\geoarrow.csproj", "{B248BBD6-C347-484F-90DC-D8E0445223AC}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "geoparquet-tools", "geoparquet-tools\geoparquet-tools.csproj", "{7AA60A0A-12D7-4B0C-BC08-B210B27D1C54}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B583E30A-1019-4222-A379-D5EF627091D1}"
@@ -45,10 +43,6 @@ Global
 		{66E7D036-F63B-46D4-AB4C-69EC1E21C437}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{66E7D036-F63B-46D4-AB4C-69EC1E21C437}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{66E7D036-F63B-46D4-AB4C-69EC1E21C437}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B248BBD6-C347-484F-90DC-D8E0445223AC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B248BBD6-C347-484F-90DC-D8E0445223AC}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B248BBD6-C347-484F-90DC-D8E0445223AC}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B248BBD6-C347-484F-90DC-D8E0445223AC}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7AA60A0A-12D7-4B0C-BC08-B210B27D1C54}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{7AA60A0A-12D7-4B0C-BC08-B210B27D1C54}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7AA60A0A-12D7-4B0C-BC08-B210B27D1C54}.Release|Any CPU.ActiveCfg = Release|Any CPU

@@ -1,5 +1,4 @@
 using Apache.Arrow.Ipc;
-using geoarrow;
 using NetTopologySuite.Geometries;
 using NetTopologySuite.IO;
 using ParquetSharp;
@@ -27,32 +26,6 @@ public class Tests
         // failed attempt to go to dataframe
         // next line gives error: Unsupported LogicalType Double?[]
         //var dataframe =file1.ToDataFrame();
-    }
-
-    [Test]
-    public void ReadUtrechtKunstwerkenFile()
-    {
-        var file = "testfixtures/utrecht_kunstwerken.parquet";
-        var file1 = new ParquetFileReader(file);
-        var geoParquet = file1.GetGeoMetadata();
-        var rowGroupReader = file1.RowGroup(0);
-        var geomColumnId = GetColumnId(rowGroupReader, "xy");
-        if (geoParquet != null)
-        {
-            Assert.That(geoParquet.Columns.First().Value.Encoding == "geoarrow.point");
-
-            if (geomColumnId != null)
-            {
-                var reader = rowGroupReader.Column((int)geomColumnId).LogicalReader<Double?[]>();
-                var geoArowReader = new GeoArrowReader();
-                var geoms = geoArowReader.Read(reader);
-
-                var firstPoint = (Point)geoms[0].Geometry;
-
-                Assert.That(firstPoint.X == 5.130985969530343);
-                Assert.That(firstPoint.Y == 52.089758941656768);
-            }
-        }
     }
 
     [Test]
