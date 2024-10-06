@@ -8,6 +8,8 @@ https://geoparquet.org/
 
 Specification: https://github.com/opengeospatial/geoparquet/blob/main/format-specs/geoparquet.md
 
+Schema: https://github.com/opengeospatial/geoparquet/blob/main/format-specs/schema.json
+
 Blog: https://bertt.wordpress.com/2022/12/20/geoparquet-geospatial-vector-data-using-apache-parquet/
 
 NuGet: https://www.nuget.org/packages/bertt.geoparquet/
