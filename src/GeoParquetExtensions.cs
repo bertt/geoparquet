@@ -4,7 +4,7 @@ using System.Text.Json;
 namespace GeoParquet;
 public static class GeoParquetExtensions
 {
-    public static String? GetGeoMetadataAsString(this ParquetFileReader parquetFileReader)
+    public static string? GetGeoMetadataAsString(this ParquetFileReader parquetFileReader)
     {
         var metadata = parquetFileReader.FileMetaData.KeyValueMetadata;
         var geoMetaData = metadata.GetValueOrDefault("geo");

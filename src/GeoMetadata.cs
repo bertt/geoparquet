@@ -7,7 +7,7 @@ public static class GeoMetadata
     public static Dictionary<string, string> GetGeoMetadata(GeoColumn geoColumn)
     {
         var parquet = new GeoParquet();
-        parquet.Version = "1.0.0";
+        parquet.Version = "1.1.0";
         parquet.Primary_column = "geometry";
         parquet.Columns.Add("geometry", geoColumn);
 

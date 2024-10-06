@@ -1,49 +1,45 @@
-﻿namespace GeoParquet
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+
+namespace GeoParquet
 {
     public partial class GeoColumn
     {
 
-        [System.Text.Json.Serialization.JsonPropertyName("encoding")]
-        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
-        [System.ComponentModel.DataAnnotations.RegularExpression(@"^(WKB|point|linestring|polygon|multipoint|multilinestring|multipolygon)$")]
+        [JsonPropertyName("encoding")]
+        [Required(AllowEmptyStrings = true)]
+        [RegularExpression(@"^(WKB|point|linestring|polygon|multipoint|multilinestring|multipolygon)$")]
         public string Encoding { get; set; }
 
 
-        [System.Text.Json.Serialization.JsonPropertyName("geometry_types")]
-        [System.ComponentModel.DataAnnotations.Required]
+        [JsonPropertyName("geometry_types")]
+        [Required]
         public ICollection<string> Geometry_types { get; set; } = new System.Collections.ObjectModel.Collection<string>();
 
-
-        [System.Text.Json.Serialization.JsonPropertyName("edges")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+        [JsonPropertyName("edges")]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public Edges Edges { get; set; }
 
 
-        [System.Text.Json.Serialization.JsonPropertyName("orientation")]
+        [JsonPropertyName("orientation")]
         public string Orientation { get; set; }
 
 
-        [System.Text.Json.Serialization.JsonPropertyName("bbox")]
+        [JsonPropertyName("bbox")]
         public double[] Bbox { get; set; }
 
 
-        [System.Text.Json.Serialization.JsonPropertyName("epoch")]
+        [JsonPropertyName("epoch")]
         public double Epoch { get; set; }
 
 
-        [System.Text.Json.Serialization.JsonPropertyName("covering")]
+        [JsonPropertyName("covering")]
         public Covering Covering { get; set; }
 
 
-
-        private IDictionary<string, object> _additionalProperties;
-
-        [System.Text.Json.Serialization.JsonExtensionData]
-        public IDictionary<string, object> AdditionalProperties
-        {
-            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
-            set { _additionalProperties = value; }
-        }
-
+        [JsonPropertyName("additionalProperties")]
+        public bool AdditionalProperties { get; set; }
     }
 }
+
+
