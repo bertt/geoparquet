@@ -9,7 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Apache.Arrow" Version="17.0.0" />
+    <PackageReference Include="Apache.Arrow" Version="18.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
     <PackageReference Include="NetTopologySuite" Version="2.5.0" />
     <PackageReference Include="NUnit" Version="4.2.2" />
