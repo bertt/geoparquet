@@ -401,7 +401,7 @@ See [QGIS_TESTING.md](QGIS_TESTING.md) for instructions on how to verify the gen
 
 ## Dependencies
 
-- ParquetSharp 15 https://github.com/G-Research/ParquetSharp
+- ParquetSharp 21 https://github.com/G-Research/ParquetSharp
 
 # Roadmap
 
