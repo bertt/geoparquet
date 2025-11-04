@@ -393,46 +393,53 @@ public class Tests
 
         var writerProperties = new WriterPropertiesBuilder().Build();
         var fileName = @"lines_geoarrow.parquet";
-        var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata);
-        var rowGroup = parquetFileWriter.AppendRowGroup();
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+        {
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
+            {
+                // Write names
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+                {
+                    nameWriter.WriteBatch(new string[] { "Line1", "Line2" });
+                }
 
-        // Write names
-        var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
-        nameWriter.WriteBatch(new string[] { "Line1", "Line2" });
+                // Create LineString geometries
+                // LineString 1: (0,0) -> (1,1) -> (2,0)
+                var line1 = new LineString(new Coordinate[] {
+                    new Coordinate(0, 0),
+                    new Coordinate(1, 1),
+                    new Coordinate(2, 0)
+                });
 
-        // Create LineString geometries
-        // LineString 1: (0,0) -> (1,1) -> (2,0)
-        var line1 = new LineString(new Coordinate[] {
-            new Coordinate(0, 0),
-            new Coordinate(1, 1),
-            new Coordinate(2, 0)
-        });
+                // LineString 2: (5,5) -> (6,6)
+                var line2 = new LineString(new Coordinate[] {
+                    new Coordinate(5, 5),
+                    new Coordinate(6, 6)
+                });
 
-        // LineString 2: (5,5) -> (6,6)
-        var line2 = new LineString(new Coordinate[] {
-            new Coordinate(5, 5),
-            new Coordinate(6, 6)
-        });
+                // For LineString, we need to write the list of coordinates
+                // Each row contains one LineString: Nested<double>[]
+                // WriteBatch takes array of rows: Nested<double>[][]
+                
+                // Extract x coordinates
+                var xCoords1 = line1.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+                var xCoords2 = line2.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+                
+                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
+                {
+                    xWriter.WriteBatch(new Nested<double>[][] { xCoords1, xCoords2 });
+                }
 
-        // For LineString, we need to write the list of coordinates
-        // Each row contains one LineString: Nested<double>[]
-        // WriteBatch takes array of rows: Nested<double>[][]
-        
-        // Extract x coordinates
-        var xCoords1 = line1.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
-        var xCoords2 = line2.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
-        
-        var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>();
-        xWriter.WriteBatch(new Nested<double>[][] { xCoords1, xCoords2 });
-
-        // Extract y coordinates
-        var yCoords1 = line1.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
-        var yCoords2 = line2.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
-        
-        var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>();
-        yWriter.WriteBatch(new Nested<double>[][] { yCoords1, yCoords2 });
-
-        parquetFileWriter.Close();
+                // Extract y coordinates
+                var yCoords1 = line1.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+                var yCoords2 = line2.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+                
+                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
+                {
+                    yWriter.WriteBatch(new Nested<double>[][] { yCoords1, yCoords2 });
+                }
+            }
+        }
     }
 
     [Test]
@@ -447,58 +454,65 @@ public class Tests
 
         var writerProperties = new WriterPropertiesBuilder().Build();
         var fileName = @"polygons_geoarrow.parquet";
-        var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata);
-        var rowGroup = parquetFileWriter.AppendRowGroup();
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+        {
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
+            {
+                // Write names
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+                {
+                    nameWriter.WriteBatch(new string[] { "Polygon1", "Polygon2" });
+                }
 
-        // Write names
-        var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
-        nameWriter.WriteBatch(new string[] { "Polygon1", "Polygon2" });
+                // Create Polygon geometries
+                // Polygon 1: Triangle
+                var polygon1 = new Polygon(new LinearRing(new Coordinate[] {
+                    new Coordinate(0, 0),
+                    new Coordinate(4, 0),
+                    new Coordinate(2, 3),
+                    new Coordinate(0, 0)  // closing coordinate
+                }));
 
-        // Create Polygon geometries
-        // Polygon 1: Triangle
-        var polygon1 = new Polygon(new LinearRing(new Coordinate[] {
-            new Coordinate(0, 0),
-            new Coordinate(4, 0),
-            new Coordinate(2, 3),
-            new Coordinate(0, 0)  // closing coordinate
-        }));
+                // Polygon 2: Square
+                var polygon2 = new Polygon(new LinearRing(new Coordinate[] {
+                    new Coordinate(10, 10),
+                    new Coordinate(14, 10),
+                    new Coordinate(14, 14),
+                    new Coordinate(10, 14),
+                    new Coordinate(10, 10)  // closing coordinate
+                }));
 
-        // Polygon 2: Square
-        var polygon2 = new Polygon(new LinearRing(new Coordinate[] {
-            new Coordinate(10, 10),
-            new Coordinate(14, 10),
-            new Coordinate(14, 14),
-            new Coordinate(10, 14),
-            new Coordinate(10, 10)  // closing coordinate
-        }));
+                // For Polygon, we need to write list of rings, each ring is a list of coordinates
+                // Each row contains one Polygon: Nested<double>[][] (rings x coordinates)
+                // WriteBatch takes array of rows: Nested<double>[][][] (rows x rings x coordinates)
+                
+                // Extract x coordinates for polygon1 - it has 1 ring (exterior ring)
+                var polygon1XRing = polygon1.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+                
+                // Extract x coordinates for polygon2 - it has 1 ring (exterior ring)
+                var polygon2XRing = polygon2.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+                
+                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>())
+                {
+                    xWriter.WriteBatch(new Nested<double>[][][] { 
+                        new Nested<double>[][] { polygon1XRing },  // Polygon 1 with 1 ring
+                        new Nested<double>[][] { polygon2XRing }   // Polygon 2 with 1 ring
+                    });
+                }
 
-        // For Polygon, we need to write list of rings, each ring is a list of coordinates
-        // Each row contains one Polygon: Nested<double>[][] (rings x coordinates)
-        // WriteBatch takes array of rows: Nested<double>[][][] (rows x rings x coordinates)
-        
-        // Extract x coordinates for polygon1 - it has 1 ring (exterior ring)
-        var polygon1XRing = polygon1.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
-        
-        // Extract x coordinates for polygon2 - it has 1 ring (exterior ring)
-        var polygon2XRing = polygon2.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
-        
-        var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>();
-        xWriter.WriteBatch(new Nested<double>[][][] { 
-            new Nested<double>[][] { polygon1XRing },  // Polygon 1 with 1 ring
-            new Nested<double>[][] { polygon2XRing }   // Polygon 2 with 1 ring
-        });
-
-        // Extract y coordinates
-        var polygon1YRing = polygon1.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
-        var polygon2YRing = polygon2.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
-        
-        var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>();
-        yWriter.WriteBatch(new Nested<double>[][][] { 
-            new Nested<double>[][] { polygon1YRing },  // Polygon 1 with 1 ring
-            new Nested<double>[][] { polygon2YRing }   // Polygon 2 with 1 ring
-        });
-
-        parquetFileWriter.Close();
+                // Extract y coordinates
+                var polygon1YRing = polygon1.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+                var polygon2YRing = polygon2.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+                
+                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>())
+                {
+                    yWriter.WriteBatch(new Nested<double>[][][] { 
+                        new Nested<double>[][] { polygon1YRing },  // Polygon 1 with 1 ring
+                        new Nested<double>[][] { polygon2YRing }   // Polygon 2 with 1 ring
+                    });
+                }
+            }
+        }
     }
 
     [Test]
@@ -550,35 +564,37 @@ public class Tests
         }
 
         // Now read it back
-        var file1 = new ParquetFileReader(fileName);
-        var geoParquet = file1.GetGeoMetadata();
-        Assert.That(geoParquet, Is.Not.Null);
-        Assert.That(geoParquet!.Version == "1.1.0");
-        Assert.That(geoParquet.Columns.First().Value.Encoding == "linestring");
+        using (var file1 = new ParquetFileReader(fileName))
+        {
+            var geoParquet = file1.GetGeoMetadata();
+            Assert.That(geoParquet, Is.Not.Null);
+            Assert.That(geoParquet!.Version == "1.1.0");
+            Assert.That(geoParquet.Columns.First().Value.Encoding == "linestring");
 
-        var rowGroupReader = file1.RowGroup(0);
-        
-        // Read name
-        var nameReader = rowGroupReader.Column(0).LogicalReader<string>();
-        var names = nameReader.ReadAll(1);
-        Assert.That(names[0] == "Line1");
+            var rowGroupReader = file1.RowGroup(0);
+            
+            // Read name
+            var nameReader = rowGroupReader.Column(0).LogicalReader<string>();
+            var names = nameReader.ReadAll(1);
+            Assert.That(names[0] == "Line1");
 
-        // Read coordinates - each row contains one LineString as Nested<double>[]
-        var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>[]>();
-        var xCoords2 = xReader.ReadAll(1);
-        Assert.That(xCoords2.Length, Is.EqualTo(1));  // 1 row
-        Assert.That(xCoords2[0].Length, Is.EqualTo(3));  // 3 coordinates in the linestring
-        Assert.That(xCoords2[0][0].Value, Is.EqualTo(0));
-        Assert.That(xCoords2[0][1].Value, Is.EqualTo(1));
-        Assert.That(xCoords2[0][2].Value, Is.EqualTo(2));
+            // Read coordinates - each row contains one LineString as Nested<double>[]
+            var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>[]>();
+            var xCoords2 = xReader.ReadAll(1);
+            Assert.That(xCoords2.Length, Is.EqualTo(1));  // 1 row
+            Assert.That(xCoords2[0].Length, Is.EqualTo(3));  // 3 coordinates in the linestring
+            Assert.That(xCoords2[0][0].Value, Is.EqualTo(0));
+            Assert.That(xCoords2[0][1].Value, Is.EqualTo(1));
+            Assert.That(xCoords2[0][2].Value, Is.EqualTo(2));
 
-        var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>[]>();
-        var yCoords2 = yReader.ReadAll(1);
-        Assert.That(yCoords2.Length, Is.EqualTo(1));  // 1 row
-        Assert.That(yCoords2[0].Length, Is.EqualTo(3));  // 3 coordinates in the linestring
-        Assert.That(yCoords2[0][0].Value, Is.EqualTo(0));
-        Assert.That(yCoords2[0][1].Value, Is.EqualTo(1));
-        Assert.That(yCoords2[0][2].Value, Is.EqualTo(0));
+            var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>[]>();
+            var yCoords2 = yReader.ReadAll(1);
+            Assert.That(yCoords2.Length, Is.EqualTo(1));  // 1 row
+            Assert.That(yCoords2[0].Length, Is.EqualTo(3));  // 3 coordinates in the linestring
+            Assert.That(yCoords2[0][0].Value, Is.EqualTo(0));
+            Assert.That(yCoords2[0][1].Value, Is.EqualTo(1));
+            Assert.That(yCoords2[0][2].Value, Is.EqualTo(0));
+        }
     }
 
     [Test]
@@ -632,39 +648,41 @@ public class Tests
         }
 
         // Now read it back
-        var file1 = new ParquetFileReader(fileName);
-        var geoParquet = file1.GetGeoMetadata();
-        Assert.That(geoParquet, Is.Not.Null);
-        Assert.That(geoParquet!.Version == "1.1.0");
-        Assert.That(geoParquet.Columns.First().Value.Encoding == "polygon");
+        using (var file1 = new ParquetFileReader(fileName))
+        {
+            var geoParquet = file1.GetGeoMetadata();
+            Assert.That(geoParquet, Is.Not.Null);
+            Assert.That(geoParquet!.Version == "1.1.0");
+            Assert.That(geoParquet.Columns.First().Value.Encoding == "polygon");
 
-        var rowGroupReader = file1.RowGroup(0);
-        
-        // Read name
-        var nameReader = rowGroupReader.Column(0).LogicalReader<string>();
-        var names = nameReader.ReadAll(1);
-        Assert.That(names[0] == "Triangle");
+            var rowGroupReader = file1.RowGroup(0);
+            
+            // Read name
+            var nameReader = rowGroupReader.Column(0).LogicalReader<string>();
+            var names = nameReader.ReadAll(1);
+            Assert.That(names[0] == "Triangle");
 
-        // Read coordinates - each row contains one Polygon as Nested<double>[][]
-        var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>[][]>();
-        var xCoords2 = xReader.ReadAll(1);
-        Assert.That(xCoords2.Length, Is.EqualTo(1));  // 1 row
-        Assert.That(xCoords2[0].Length, Is.EqualTo(1));  // 1 ring
-        Assert.That(xCoords2[0][0].Length, Is.EqualTo(4));  // 4 vertices
-        Assert.That(xCoords2[0][0][0].Value, Is.EqualTo(0));
-        Assert.That(xCoords2[0][0][1].Value, Is.EqualTo(4));
-        Assert.That(xCoords2[0][0][2].Value, Is.EqualTo(2));
-        Assert.That(xCoords2[0][0][3].Value, Is.EqualTo(0));
+            // Read coordinates - each row contains one Polygon as Nested<double>[][]
+            var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>[][]>();
+            var xCoords2 = xReader.ReadAll(1);
+            Assert.That(xCoords2.Length, Is.EqualTo(1));  // 1 row
+            Assert.That(xCoords2[0].Length, Is.EqualTo(1));  // 1 ring
+            Assert.That(xCoords2[0][0].Length, Is.EqualTo(4));  // 4 vertices
+            Assert.That(xCoords2[0][0][0].Value, Is.EqualTo(0));
+            Assert.That(xCoords2[0][0][1].Value, Is.EqualTo(4));
+            Assert.That(xCoords2[0][0][2].Value, Is.EqualTo(2));
+            Assert.That(xCoords2[0][0][3].Value, Is.EqualTo(0));
 
-        var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>[][]>();
-        var yCoords2 = yReader.ReadAll(1);
-        Assert.That(yCoords2.Length, Is.EqualTo(1));  // 1 row
-        Assert.That(yCoords2[0].Length, Is.EqualTo(1));  // 1 ring
-        Assert.That(yCoords2[0][0].Length, Is.EqualTo(4));  // 4 vertices
-        Assert.That(yCoords2[0][0][0].Value, Is.EqualTo(0));
-        Assert.That(yCoords2[0][0][1].Value, Is.EqualTo(0));
-        Assert.That(yCoords2[0][0][2].Value, Is.EqualTo(3));
-        Assert.That(yCoords2[0][0][3].Value, Is.EqualTo(0));
+            var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>[][]>();
+            var yCoords2 = yReader.ReadAll(1);
+            Assert.That(yCoords2.Length, Is.EqualTo(1));  // 1 row
+            Assert.That(yCoords2[0].Length, Is.EqualTo(1));  // 1 ring
+            Assert.That(yCoords2[0][0].Length, Is.EqualTo(4));  // 4 vertices
+            Assert.That(yCoords2[0][0][0].Value, Is.EqualTo(0));
+            Assert.That(yCoords2[0][0][1].Value, Is.EqualTo(0));
+            Assert.That(yCoords2[0][0][2].Value, Is.EqualTo(3));
+            Assert.That(yCoords2[0][0][3].Value, Is.EqualTo(0));
+        }
     }
 }
 
