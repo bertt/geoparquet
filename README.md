@@ -397,6 +397,315 @@ parquetFileWriter.Close();
 
 Result Parquet file can be visualized in QGIS as a geometry layer with Polygon features.
 
+### Writing MultiPoint geometries with native encoding
+
+For writing MultiPoint geometries using native GeoParquet encoding, create a schema with a struct containing lists of x and y coordinates (similar to LineString):
+
+```csharp
+using ParquetSharp;
+using ParquetSharp.Schema;
+using NetTopologySuite.Geometries;
+using System.Linq;
+
+// Create schema for MultiPoint geometry
+var nameNode = new PrimitiveNode(
+    "name", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+// Create the coordinate struct with x and y
+var xNode = new PrimitiveNode(
+    "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+var yNode = new PrimitiveNode(
+    "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+
+var xyNode = new GroupNode(
+    "xy", Repetition.Required, new Node[] { xNode, yNode });
+
+// MultiPoint is a list of xy coordinates
+var listNode = new GroupNode(
+    "list", Repetition.Repeated, new Node[] { xyNode });
+
+var geometryNode = new GroupNode(
+    "geometry", Repetition.Optional, new Node[] { listNode }, LogicalType.List());
+
+// Root schema
+var schema = new GroupNode(
+    "schema", Repetition.Required, new Node[] { nameNode, geometryNode });
+
+// Create GeoParquet metadata with native "multipoint" encoding
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = "multipoint";
+geoColumn.Geometry_types.Add("MultiPoint");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+// Write the file
+var writerProperties = new WriterPropertiesBuilder().Build();
+var parquetFileWriter = new ParquetFileWriter("multipoints.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+var rowGroup = parquetFileWriter.AppendRowGroup();
+
+// Write names
+var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
+nameWriter.WriteBatch(new string[] { "MultiPoint1", "MultiPoint2" });
+
+// Create MultiPoint geometries
+var multiPoint1 = new MultiPoint(new Point[] {
+    new Point(0, 0),
+    new Point(1, 1),
+    new Point(2, 0)
+});
+
+var multiPoint2 = new MultiPoint(new Point[] {
+    new Point(5, 5),
+    new Point(6, 6)
+});
+
+// Write MultiPoint geometries
+var xCoords1 = multiPoint1.Geometries.Cast<Point>().Select(p => new Nested<double>(p.X)).ToArray();
+var xCoords2 = multiPoint2.Geometries.Cast<Point>().Select(p => new Nested<double>(p.X)).ToArray();
+
+var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>();
+xWriter.WriteBatch(new Nested<double>[][] { xCoords1, xCoords2 });
+
+var yCoords1 = multiPoint1.Geometries.Cast<Point>().Select(p => new Nested<double>(p.Y)).ToArray();
+var yCoords2 = multiPoint2.Geometries.Cast<Point>().Select(p => new Nested<double>(p.Y)).ToArray();
+
+var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>();
+yWriter.WriteBatch(new Nested<double>[][] { yCoords1, yCoords2 });
+
+parquetFileWriter.Close();
+```
+
+Result Parquet file can be visualized in QGIS as a geometry layer with MultiPoint features.
+
+### Writing MultiLineString geometries with native encoding
+
+For writing MultiLineString geometries using native GeoParquet encoding, create a schema with a struct containing lists of linestrings, where each linestring is a list of x and y coordinates:
+
+```csharp
+using ParquetSharp;
+using ParquetSharp.Schema;
+using NetTopologySuite.Geometries;
+using System.Linq;
+
+// Create schema for MultiLineString geometry
+var nameNode = new PrimitiveNode(
+    "name", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+// Create the coordinate struct with x and y
+var xNode = new PrimitiveNode(
+    "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+var yNode = new PrimitiveNode(
+    "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+
+var xyNode = new GroupNode(
+    "xy", Repetition.Required, new Node[] { xNode, yNode });
+
+// A linestring is a list of xy coordinates
+var lineListNode = new GroupNode(
+    "list", Repetition.Repeated, new Node[] { xyNode });
+
+var lineNode = new GroupNode(
+    "element", Repetition.Required, new Node[] { lineListNode }, LogicalType.List());
+
+// MultiLineString is a list of linestrings
+var multiLineListNode = new GroupNode(
+    "list", Repetition.Repeated, new Node[] { lineNode });
+
+var geometryNode = new GroupNode(
+    "geometry", Repetition.Optional, new Node[] { multiLineListNode }, LogicalType.List());
+
+// Root schema
+var schema = new GroupNode(
+    "schema", Repetition.Required, new Node[] { nameNode, geometryNode });
+
+// Create GeoParquet metadata with native "multilinestring" encoding
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = "multilinestring";
+geoColumn.Geometry_types.Add("MultiLineString");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+// Write the file
+var writerProperties = new WriterPropertiesBuilder().Build();
+var parquetFileWriter = new ParquetFileWriter("multilinestrings.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+var rowGroup = parquetFileWriter.AppendRowGroup();
+
+// Write names
+var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
+nameWriter.WriteBatch(new string[] { "MultiLine1", "MultiLine2" });
+
+// Create MultiLineString geometries
+var multiLine1 = new MultiLineString(new LineString[] {
+    new LineString(new Coordinate[] {
+        new Coordinate(0, 0),
+        new Coordinate(1, 1)
+    }),
+    new LineString(new Coordinate[] {
+        new Coordinate(2, 2),
+        new Coordinate(3, 3),
+        new Coordinate(4, 4)
+    })
+});
+
+var multiLine2 = new MultiLineString(new LineString[] {
+    new LineString(new Coordinate[] {
+        new Coordinate(5, 5),
+        new Coordinate(6, 6)
+    })
+});
+
+// Write MultiLineString geometries
+var multiLine1XLines = multiLine1.Geometries.Cast<LineString>()
+    .Select(line => line.Coordinates.Select(c => new Nested<double>(c.X)).ToArray())
+    .ToArray();
+
+var multiLine2XLines = multiLine2.Geometries.Cast<LineString>()
+    .Select(line => line.Coordinates.Select(c => new Nested<double>(c.X)).ToArray())
+    .ToArray();
+
+var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>();
+xWriter.WriteBatch(new Nested<double>[][][] { multiLine1XLines, multiLine2XLines });
+
+var multiLine1YLines = multiLine1.Geometries.Cast<LineString>()
+    .Select(line => line.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray())
+    .ToArray();
+
+var multiLine2YLines = multiLine2.Geometries.Cast<LineString>()
+    .Select(line => line.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray())
+    .ToArray();
+
+var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>();
+yWriter.WriteBatch(new Nested<double>[][][] { multiLine1YLines, multiLine2YLines });
+
+parquetFileWriter.Close();
+```
+
+Result Parquet file can be visualized in QGIS as a geometry layer with MultiLineString features.
+
+### Writing MultiPolygon geometries with native encoding
+
+For writing MultiPolygon geometries using native GeoParquet encoding, create a schema with a struct containing lists of polygons, where each polygon is a list of rings, and each ring is a list of x and y coordinates:
+
+```csharp
+using ParquetSharp;
+using ParquetSharp.Schema;
+using NetTopologySuite.Geometries;
+using System.Linq;
+
+// Create schema for MultiPolygon geometry
+var nameNode = new PrimitiveNode(
+    "name", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+// Create the coordinate struct with x and y
+var xNode = new PrimitiveNode(
+    "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+var yNode = new PrimitiveNode(
+    "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+
+var xyNode = new GroupNode(
+    "xy", Repetition.Required, new Node[] { xNode, yNode });
+
+// A ring is a list of xy coordinates
+var ringListNode = new GroupNode(
+    "list", Repetition.Repeated, new Node[] { xyNode });
+
+var ringNode = new GroupNode(
+    "element", Repetition.Required, new Node[] { ringListNode }, LogicalType.List());
+
+// A polygon is a list of rings
+var polygonListNode = new GroupNode(
+    "list", Repetition.Repeated, new Node[] { ringNode });
+
+var polygonNode = new GroupNode(
+    "element", Repetition.Required, new Node[] { polygonListNode }, LogicalType.List());
+
+// MultiPolygon is a list of polygons
+var multiPolygonListNode = new GroupNode(
+    "list", Repetition.Repeated, new Node[] { polygonNode });
+
+var geometryNode = new GroupNode(
+    "geometry", Repetition.Optional, new Node[] { multiPolygonListNode }, LogicalType.List());
+
+// Root schema
+var schema = new GroupNode(
+    "schema", Repetition.Required, new Node[] { nameNode, geometryNode });
+
+// Create GeoParquet metadata with native "multipolygon" encoding
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = "multipolygon";
+geoColumn.Geometry_types.Add("MultiPolygon");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+// Write the file
+var writerProperties = new WriterPropertiesBuilder().Build();
+var parquetFileWriter = new ParquetFileWriter("multipolygons.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+var rowGroup = parquetFileWriter.AppendRowGroup();
+
+// Write names
+var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
+nameWriter.WriteBatch(new string[] { "MultiPolygon1", "MultiPolygon2" });
+
+// Create MultiPolygon geometries
+var multiPolygon1 = new MultiPolygon(new Polygon[] {
+    new Polygon(new LinearRing(new Coordinate[] {
+        new Coordinate(0, 0),
+        new Coordinate(4, 0),
+        new Coordinate(2, 3),
+        new Coordinate(0, 0)
+    })),
+    new Polygon(new LinearRing(new Coordinate[] {
+        new Coordinate(10, 10),
+        new Coordinate(14, 10),
+        new Coordinate(14, 14),
+        new Coordinate(10, 14),
+        new Coordinate(10, 10)
+    }))
+});
+
+var multiPolygon2 = new MultiPolygon(new Polygon[] {
+    new Polygon(new LinearRing(new Coordinate[] {
+        new Coordinate(20, 20),
+        new Coordinate(25, 20),
+        new Coordinate(25, 25),
+        new Coordinate(20, 25),
+        new Coordinate(20, 20)
+    }))
+});
+
+// Write MultiPolygon geometries
+var multiPolygon1XPolygons = multiPolygon1.Geometries.Cast<Polygon>()
+    .Select(polygon => new Nested<double>[][] {
+        polygon.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray()
+    })
+    .ToArray();
+
+var multiPolygon2XPolygons = multiPolygon2.Geometries.Cast<Polygon>()
+    .Select(polygon => new Nested<double>[][] {
+        polygon.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray()
+    })
+    .ToArray();
+
+var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][][]>();
+xWriter.WriteBatch(new Nested<double>[][][][] { multiPolygon1XPolygons, multiPolygon2XPolygons });
+
+var multiPolygon1YPolygons = multiPolygon1.Geometries.Cast<Polygon>()
+    .Select(polygon => new Nested<double>[][] {
+        polygon.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray()
+    })
+    .ToArray();
+
+var multiPolygon2YPolygons = multiPolygon2.Geometries.Cast<Polygon>()
+    .Select(polygon => new Nested<double>[][] {
+        polygon.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray()
+    })
+    .ToArray();
+
+var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][][]>();
+yWriter.WriteBatch(new Nested<double>[][][][] { multiPolygon1YPolygons, multiPolygon2YPolygons });
+
+parquetFileWriter.Close();
+```
+
+Result Parquet file can be visualized in QGIS as a geometry layer with MultiPolygon features.
+
 See [QGIS_TESTING.md](QGIS_TESTING.md) for instructions on how to verify the generated files in QGIS.
 
 ## Dependencies
