@@ -298,9 +298,6 @@ yWriter.WriteBatch(new Nested<double>[][] { yCoords1, yCoords2 });
 
 parquetFileWriter.Close();
 ```
-
-Result Parquet file can be visualized in QGIS as a geometry layer with LineString features.
-
 ### Writing Polygon geometries with native encoding
 
 For writing Polygon geometries using native GeoParquet encoding, create a schema with a struct containing lists of rings, where each ring is a list of x and y coordinates:
