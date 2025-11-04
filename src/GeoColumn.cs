@@ -8,7 +8,7 @@ namespace GeoParquet
 
         [JsonPropertyName("encoding")]
         [Required(AllowEmptyStrings = true)]
-        [RegularExpression(@"^(WKB|point|linestring|polygon|multipoint|multilinestring|multipolygon)$")]
+        [RegularExpression(@"^(WKB|point|linestring|polygon|multipoint|multilinestring|multipolygon|geoarrow\.point|geoarrow\.linestring|geoarrow\.polygon|geoarrow\.multipoint|geoarrow\.multilinestring|geoarrow\.multipolygon)$")]
         public string Encoding { get; set; }
 
 

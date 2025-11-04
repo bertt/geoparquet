@@ -165,11 +165,26 @@ public class Tests
     [Test]
     public void WriteGeoParquetGeoArrowFile()
     {
-        var columns = new Column[]
-        {
-            new Column<string>("city"),
-            new Column<Double?[]>("geometry")
-        };
+        // Create schema manually to properly define GeoArrow Point structure
+        // The geometry column needs to be a List with a field named "xy"
+        var cityNode = new PrimitiveNode(
+            "city", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+        // For GeoArrow Point, the coordinates are stored in a field named "xy"
+        var xyNode = new PrimitiveNode(
+            "xy", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+
+        // The repeated group that contains the xy coordinates
+        var listNode = new GroupNode(
+            "list", Repetition.Repeated, new Node[] { xyNode });
+
+        // The geometry list container
+        var geometryNode = new GroupNode(
+            "geometry", Repetition.Optional, new Node[] { listNode }, LogicalType.List());
+
+        // Root schema
+        var schema = new GroupNode(
+            "schema", Repetition.Required, new Node[] { cityNode, geometryNode });
 
         var geoColumn = new GeoColumn();
         geoColumn.Encoding = "geoarrow.point";
@@ -177,7 +192,8 @@ public class Tests
         geoColumn.Orientation = "counterclockwise";
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
-        var parquetFileWriter = new ParquetFileWriter(@"cities_arrow1.parquet", columns, keyValueMetadata: geometadata);
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        var parquetFileWriter = new ParquetFileWriter(@"cities_arrow1.parquet", schema, writerProperties, keyValueMetadata: geometadata);
         var rowGroup = parquetFileWriter.AppendRowGroup();
 
         var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
@@ -185,16 +201,83 @@ public class Tests
 
         var geom0 = new Point(5, 51);
         var geom1 = new Point(5.5, 51);
-        var pointsArray = new double?[][] { new Double?[] { geom0.X, geom0.Y }, new Double?[] { geom1.X, geom1.Y } };
-        // todo add field 'xy' somewhere here
-        // type FixedSizeList.Name = "xy", "xyz" or "xyzm"
-        // Something with GroupNode 
-        // now it won't load in QGIS as geometry layer :-(
+        // For a list column, we write double[] where each array contains the x, y coordinates
+        var pointsArray = new double[][] { new double[] { geom0.X, geom0.Y }, new double[] { geom1.X, geom1.Y } };
+        
         var geomColumn = rowGroup.NextColumn();
-        var writer = geomColumn.LogicalWriter<Double?[]>();
+        var writer = geomColumn.LogicalWriter<double[]>();
 
         writer.WriteBatch(pointsArray);
         parquetFileWriter.Close();
+    }
+
+    [Test]
+    public void ReadGeoParquetGeoArrowPointFile()
+    {
+        // First write a GeoArrow Point file
+        var cityNode = new PrimitiveNode(
+            "city", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+        var xyNode = new PrimitiveNode(
+            "xy", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+
+        var listNode = new GroupNode(
+            "list", Repetition.Repeated, new Node[] { xyNode });
+
+        var geometryNode = new GroupNode(
+            "geometry", Repetition.Optional, new Node[] { listNode }, LogicalType.List());
+
+        var schema = new GroupNode(
+            "schema", Repetition.Required, new Node[] { cityNode, geometryNode });
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Encoding = "geoarrow.point";
+        geoColumn.Geometry_types.Add("Point");
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        var fileName = "test_geoarrow_point_read.parquet";
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+        {
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
+            {
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+                {
+                    nameWriter.WriteBatch(new string[] { "London", "Derby" });
+                }
+
+                var pointsArray = new double[][] { new double[] { 5, 51 }, new double[] { 5.5, 51 } };
+                using (var writer = rowGroup.NextColumn().LogicalWriter<double[]>())
+                {
+                    writer.WriteBatch(pointsArray);
+                }
+            }
+        }
+
+        // Now read it back
+        var file1 = new ParquetFileReader(fileName);
+        var geoParquet = file1.GetGeoMetadata();
+        Assert.That(geoParquet, Is.Not.Null);
+        Assert.That(geoParquet!.Version == "1.1.0");
+        Assert.That(geoParquet.Columns.First().Value.Encoding == "geoarrow.point");
+
+        var rowGroupReader = file1.RowGroup(0);
+        
+        // Read city names
+        var cityReader = rowGroupReader.Column(0).LogicalReader<string>();
+        var cities = cityReader.ReadAll(2);
+        Assert.That(cities[0] == "London");
+        Assert.That(cities[1] == "Derby");
+
+        // Read geometry as double[]
+        var geometryReader = rowGroupReader.Column(1).LogicalReader<double[]>();
+        var geometries = geometryReader.ReadAll(2);
+        Assert.That(geometries.Length == 2);
+        Assert.That(geometries[0].Length == 2);
+        Assert.That(geometries[0][0] == 5);
+        Assert.That(geometries[0][1] == 51);
+        Assert.That(geometries[1][0] == 5.5);
+        Assert.That(geometries[1][1] == 51);
     }
 
     [Test]
