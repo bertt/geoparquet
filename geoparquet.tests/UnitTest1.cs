@@ -116,6 +116,34 @@ public class Tests
         }
     }
 
+    [Test]
+    public void ReadGeoParquet110File()
+    {
+        var file = "testfixtures/countries_1_1_0.parquet";
+        var file1 = new ParquetFileReader(file);
+
+        var geoParquet = file1.GetGeoMetadata();
+        if (geoParquet != null)
+        {
+            Assert.That(geoParquet.Version == "1.1.0");
+            Assert.That(geoParquet.Primary_column == "geometry");
+            Assert.That(geoParquet.Columns.First().Value.Encoding == "WKB");
+            Assert.That(geoParquet.Columns.First().Value.Geometry_types.Contains("MultiPolygon"));
+            Assert.That(geoParquet.Columns.First().Value.Orientation == "counterclockwise");
+
+            var rowGroupReader = file1.RowGroup(0);
+            var geomColumnId = GetColumnId(rowGroupReader, geoParquet.Primary_column);
+
+            if (geomColumnId != null)
+            {
+                var geometryWkb = rowGroupReader.Column((int)geomColumnId).LogicalReader<byte[]>().First();
+                var wkbReader = new WKBReader();
+                var geometry = wkbReader.Read(geometryWkb);
+                Assert.That(geometry != null);
+            }
+        }
+    }
+
     private static int? GetColumnId(RowGroupReader rowGroupReader, string columnName)
     {
         var names = new List<string>();

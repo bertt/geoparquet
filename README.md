@@ -12,11 +12,11 @@ Blog: https://bertt.wordpress.com/2022/12/20/geoparquet-geospatial-vector-data-u
 
 NuGet: https://www.nuget.org/packages/bertt.geoparquet/
 
-Sample GeoParquet JSON metadata:
+Sample GeoParquet JSON metadata (version 1.1.0):
 
 ```json
 {
-   "version":"1.0.0",
+   "version":"1.1.0",
    "primary_column":"geometry",
    "columns":{
       "geometry":{
@@ -29,7 +29,8 @@ Sample GeoParquet JSON metadata:
             50.750367484598314,
             7.227498450845831,
             53.55501451790761
-         ]
+         ],
+         "orientation":"counterclockwise"
       }
    }
 }
@@ -171,9 +172,10 @@ parquetFileWriter.Close();
 GeoParquet metadata classes are generated from JSON schema using NJsonSchema.CodeGeneration.CSharp (https://github.com/RicoSuter/NJsonSchema), see console project 
 'geoparquet.codegen' for details.
 
-Schema used: 
+Schemas used: 
 
-https://geoparquet.org/releases/v1.0.0/schema.json
+- https://geoparquet.org/releases/v1.0.0/schema.json
+- https://geoparquet.org/releases/v1.1.0/schema.json
 
 # Roadmap
 

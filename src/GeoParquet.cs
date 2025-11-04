@@ -134,7 +134,7 @@ namespace GeoParquet
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(2)]
         [System.ComponentModel.DataAnnotations.MaxLength(2)]
-        public double[] Xmin { get; set; }
+        public string[] Xmin { get; set; }
         // public System.Tuple<string, object> Xmin { get; set; } = new System.Tuple<string, object>();
 
 
@@ -142,7 +142,7 @@ namespace GeoParquet
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(2)]
         [System.ComponentModel.DataAnnotations.MaxLength(2)]
-        public double[] Xmax { get; set; }
+        public string[] Xmax { get; set; }
         // public System.Tuple<string, object> Xmax { get; set; } = new System.Tuple<string, object>();
 
 
@@ -150,7 +150,7 @@ namespace GeoParquet
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(2)]
         [System.ComponentModel.DataAnnotations.MaxLength(2)]
-        public double[] Ymin { get; set; }
+        public string[] Ymin { get; set; }
         // public System.Tuple<string, object> Ymin { get; set; } = new System.Tuple<string, object>();
 
 
@@ -159,7 +159,7 @@ namespace GeoParquet
         [System.ComponentModel.DataAnnotations.MinLength(2)]
         [System.ComponentModel.DataAnnotations.MaxLength(2)]
         // public System.Tuple<string, object> Ymax { get; set; } = new System.Tuple<string, object>();
-        public double[] Ymax { get; set; }
+        public string[] Ymax { get; set; }
 
 
 

@@ -31,6 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="testfixtures\countries_1_1_0.parquet">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="testfixtures\gemeenten2016.arrow">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
