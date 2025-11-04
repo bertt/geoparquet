@@ -164,6 +164,64 @@ geometryWriter.WriteBatch(wkbBytes);
 parquetFileWriter.Close();
   ```
 
+### Writing Point geometries with native encoding
+
+For writing Point geometries using native GeoParquet encoding (instead of WKB), you need to create a schema with a struct containing "x" and "y" fields:
+
+```csharp
+using ParquetSharp;
+using ParquetSharp.Schema;
+using NetTopologySuite.Geometries;
+
+// Create schema with struct-based Point geometry
+var cityNode = new PrimitiveNode(
+    "city", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+// For Point geometry, use separate x and y fields
+var xNode = new PrimitiveNode(
+    "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+var yNode = new PrimitiveNode(
+    "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+
+// The geometry as a struct containing x and y
+var geometryNode = new GroupNode(
+    "geometry", Repetition.Optional, new Node[] { xNode, yNode });
+
+// Root schema
+var schema = new GroupNode(
+    "schema", Repetition.Required, new Node[] { cityNode, geometryNode });
+
+// Create GeoParquet metadata with native "point" encoding
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = "point";
+geoColumn.Geometry_types.Add("Point");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+// Write the file
+var writerProperties = new WriterPropertiesBuilder().Build();
+var parquetFileWriter = new ParquetFileWriter("points.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+var rowGroup = parquetFileWriter.AppendRowGroup();
+
+// Write city names
+var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
+nameWriter.WriteBatch(new string[] { "London", "Derby" });
+
+// Write Point geometries
+var geom0 = new Point(5, 51);
+var geom1 = new Point(5.5, 51);
+
+// For struct-based Point geometry, write x and y as Nested<double> values
+var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>();
+xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.X), new Nested<double>(geom1.X) });
+
+var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>();
+yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.Y), new Nested<double>(geom1.Y) });
+
+parquetFileWriter.Close();
+```
+
+Result Parquet file can be visualized in QGIS as a geometry layer with Point features.
+
 ## Dependencies
 
 - ParquetSharp 15 https://github.com/G-Research/ParquetSharp
