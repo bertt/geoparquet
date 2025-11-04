@@ -18,7 +18,7 @@ var json = File.ReadAllText("./1.1.0/schema.json");
 //
 // 3] Change in resulting file GeoParquet.cs - Change tuples xmin, xmax, ymin, ymax
 //   from: public System.Tuple<string, object> Xmin { get; set; } = new System.Tuple<string, object>();
-//   to: public double[] Xmin { get; set; }
+//   to: public string[] Xmin { get; set; }
 
 var schema = await JsonSchema.FromJsonAsync(json);
 var settings = new CSharpGeneratorSettings() { JsonLibrary = CSharpJsonLibrary.SystemTextJson };
