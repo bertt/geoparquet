@@ -152,6 +152,69 @@ public class Tests
             "schema", Repetition.Required, new Node[] { cityNode, geometryNode });
     }
 
+    private static GroupNode CreateGeoArrowLineStringSchema()
+    {
+        // Create schema for LineString encoding as per GeoParquet spec
+        // LineString is a list of coordinates (x, y pairs)
+        var nameNode = new PrimitiveNode(
+            "name", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+        // Create the coordinate struct with x and y
+        var xNode = new PrimitiveNode(
+            "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+        var yNode = new PrimitiveNode(
+            "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+        
+        var xyNode = new GroupNode(
+            "xy", Repetition.Required, new Node[] { xNode, yNode });
+
+        // LineString is a list of xy coordinates
+        var listNode = new GroupNode(
+            "list", Repetition.Repeated, new Node[] { xyNode });
+        
+        var geometryNode = new GroupNode(
+            "geometry", Repetition.Optional, new Node[] { listNode }, LogicalType.List());
+
+        // Root schema
+        return new GroupNode(
+            "schema", Repetition.Required, new Node[] { nameNode, geometryNode });
+    }
+
+    private static GroupNode CreateGeoArrowPolygonSchema()
+    {
+        // Create schema for Polygon encoding as per GeoParquet spec
+        // Polygon is a list of rings, where each ring is a list of coordinates
+        var nameNode = new PrimitiveNode(
+            "name", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+        // Create the coordinate struct with x and y
+        var xNode = new PrimitiveNode(
+            "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+        var yNode = new PrimitiveNode(
+            "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+        
+        var xyNode = new GroupNode(
+            "xy", Repetition.Required, new Node[] { xNode, yNode });
+
+        // A ring is a list of xy coordinates
+        var ringListNode = new GroupNode(
+            "list", Repetition.Repeated, new Node[] { xyNode });
+        
+        var ringNode = new GroupNode(
+            "element", Repetition.Required, new Node[] { ringListNode }, LogicalType.List());
+
+        // Polygon is a list of rings
+        var polygonListNode = new GroupNode(
+            "list", Repetition.Repeated, new Node[] { ringNode });
+        
+        var geometryNode = new GroupNode(
+            "geometry", Repetition.Optional, new Node[] { polygonListNode }, LogicalType.List());
+
+        // Root schema
+        return new GroupNode(
+            "schema", Repetition.Required, new Node[] { nameNode, geometryNode });
+    }
+
     [Test]
     public void WriteGeoParquetWkbFile()
     {
@@ -316,6 +379,310 @@ public class Tests
         messagesWriter.WriteBatch(new string[] { "London", "Derby" });
 
         fileWriter.Close();
+    }
+
+    [Test]
+    public void WriteGeoParquetGeoArrowLineStringFile()
+    {
+        var schema = CreateGeoArrowLineStringSchema();
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Encoding = "linestring";
+        geoColumn.Geometry_types.Add("LineString");
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        var fileName = @"lines_geoarrow.parquet";
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+        {
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
+            {
+                // Write names
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+                {
+                    nameWriter.WriteBatch(new string[] { "Line1", "Line2" });
+                }
+
+                // Create LineString geometries
+                // LineString 1: (0,0) -> (1,1) -> (2,0)
+                var line1 = new LineString(new Coordinate[] {
+                    new Coordinate(0, 0),
+                    new Coordinate(1, 1),
+                    new Coordinate(2, 0)
+                });
+
+                // LineString 2: (5,5) -> (6,6)
+                var line2 = new LineString(new Coordinate[] {
+                    new Coordinate(5, 5),
+                    new Coordinate(6, 6)
+                });
+
+                // For LineString, we need to write the list of coordinates
+                // Each row contains one LineString: Nested<double>[]
+                // WriteBatch takes array of rows: Nested<double>[][]
+                
+                // Extract x coordinates
+                var xCoords1 = line1.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+                var xCoords2 = line2.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+                
+                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
+                {
+                    xWriter.WriteBatch(new Nested<double>[][] { xCoords1, xCoords2 });
+                }
+
+                // Extract y coordinates
+                var yCoords1 = line1.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+                var yCoords2 = line2.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+                
+                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
+                {
+                    yWriter.WriteBatch(new Nested<double>[][] { yCoords1, yCoords2 });
+                }
+            }
+        }
+    }
+
+    [Test]
+    public void WriteGeoParquetGeoArrowPolygonFile()
+    {
+        var schema = CreateGeoArrowPolygonSchema();
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Encoding = "polygon";
+        geoColumn.Geometry_types.Add("Polygon");
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        var fileName = @"polygons_geoarrow.parquet";
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+        {
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
+            {
+                // Write names
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+                {
+                    nameWriter.WriteBatch(new string[] { "Polygon1", "Polygon2" });
+                }
+
+                // Create Polygon geometries
+                // Polygon 1: Triangle
+                var polygon1 = new Polygon(new LinearRing(new Coordinate[] {
+                    new Coordinate(0, 0),
+                    new Coordinate(4, 0),
+                    new Coordinate(2, 3),
+                    new Coordinate(0, 0)  // closing coordinate
+                }));
+
+                // Polygon 2: Square
+                var polygon2 = new Polygon(new LinearRing(new Coordinate[] {
+                    new Coordinate(10, 10),
+                    new Coordinate(14, 10),
+                    new Coordinate(14, 14),
+                    new Coordinate(10, 14),
+                    new Coordinate(10, 10)  // closing coordinate
+                }));
+
+                // For Polygon, we need to write list of rings, each ring is a list of coordinates
+                // Each row contains one Polygon: Nested<double>[][] (rings x coordinates)
+                // WriteBatch takes array of rows: Nested<double>[][][] (rows x rings x coordinates)
+                
+                // Extract x coordinates for polygon1 - it has 1 ring (exterior ring)
+                var polygon1XRing = polygon1.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+                
+                // Extract x coordinates for polygon2 - it has 1 ring (exterior ring)
+                var polygon2XRing = polygon2.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+                
+                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>())
+                {
+                    xWriter.WriteBatch(new Nested<double>[][][] { 
+                        new Nested<double>[][] { polygon1XRing },  // Polygon 1 with 1 ring
+                        new Nested<double>[][] { polygon2XRing }   // Polygon 2 with 1 ring
+                    });
+                }
+
+                // Extract y coordinates
+                var polygon1YRing = polygon1.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+                var polygon2YRing = polygon2.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+                
+                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>())
+                {
+                    yWriter.WriteBatch(new Nested<double>[][][] { 
+                        new Nested<double>[][] { polygon1YRing },  // Polygon 1 with 1 ring
+                        new Nested<double>[][] { polygon2YRing }   // Polygon 2 with 1 ring
+                    });
+                }
+            }
+        }
+    }
+
+    [Test]
+    public void ReadGeoParquetGeoArrowLineStringFile()
+    {
+        var fileName = @"test_geoarrow_linestring_read.parquet";
+        
+        // First write a LineString file
+        var schema = CreateGeoArrowLineStringSchema();
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Encoding = "linestring";
+        geoColumn.Geometry_types.Add("LineString");
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+        {
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
+            {
+                // Write names
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+                {
+                    nameWriter.WriteBatch(new string[] { "Line1" });
+                }
+
+                // Write x coordinates for LineString: (0,0) -> (1,1) -> (2,0)
+                var xCoords = new Nested<double>[] {
+                    new Nested<double>(0),
+                    new Nested<double>(1),
+                    new Nested<double>(2)
+                };
+                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
+                {
+                    xWriter.WriteBatch(new Nested<double>[][] { xCoords });
+                }
+
+                // Write y coordinates
+                var yCoords = new Nested<double>[] {
+                    new Nested<double>(0),
+                    new Nested<double>(1),
+                    new Nested<double>(0)
+                };
+                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
+                {
+                    yWriter.WriteBatch(new Nested<double>[][] { yCoords });
+                }
+            }
+        }
+
+        // Now read it back
+        using (var file1 = new ParquetFileReader(fileName))
+        {
+            var geoParquet = file1.GetGeoMetadata();
+            Assert.That(geoParquet, Is.Not.Null);
+            Assert.That(geoParquet!.Version == "1.1.0");
+            Assert.That(geoParquet.Columns.First().Value.Encoding == "linestring");
+
+            var rowGroupReader = file1.RowGroup(0);
+            
+            // Read name
+            var nameReader = rowGroupReader.Column(0).LogicalReader<string>();
+            var names = nameReader.ReadAll(1);
+            Assert.That(names[0] == "Line1");
+
+            // Read coordinates - each row contains one LineString as Nested<double>[]
+            var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>[]>();
+            var xCoords2 = xReader.ReadAll(1);
+            Assert.That(xCoords2.Length, Is.EqualTo(1));  // 1 row
+            Assert.That(xCoords2[0].Length, Is.EqualTo(3));  // 3 coordinates in the linestring
+            Assert.That(xCoords2[0][0].Value, Is.EqualTo(0));
+            Assert.That(xCoords2[0][1].Value, Is.EqualTo(1));
+            Assert.That(xCoords2[0][2].Value, Is.EqualTo(2));
+
+            var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>[]>();
+            var yCoords2 = yReader.ReadAll(1);
+            Assert.That(yCoords2.Length, Is.EqualTo(1));  // 1 row
+            Assert.That(yCoords2[0].Length, Is.EqualTo(3));  // 3 coordinates in the linestring
+            Assert.That(yCoords2[0][0].Value, Is.EqualTo(0));
+            Assert.That(yCoords2[0][1].Value, Is.EqualTo(1));
+            Assert.That(yCoords2[0][2].Value, Is.EqualTo(0));
+        }
+    }
+
+    [Test]
+    public void ReadGeoParquetGeoArrowPolygonFile()
+    {
+        var fileName = @"test_geoarrow_polygon_read.parquet";
+        
+        // First write a Polygon file
+        var schema = CreateGeoArrowPolygonSchema();
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Encoding = "polygon";
+        geoColumn.Geometry_types.Add("Polygon");
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+        {
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
+            {
+                // Write names
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+                {
+                    nameWriter.WriteBatch(new string[] { "Triangle" });
+                }
+
+                // Write x coordinates for Polygon: Triangle (0,0) -> (4,0) -> (2,3) -> (0,0)
+                var xRing = new Nested<double>[] {
+                    new Nested<double>(0),
+                    new Nested<double>(4),
+                    new Nested<double>(2),
+                    new Nested<double>(0)
+                };
+                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>())
+                {
+                    xWriter.WriteBatch(new Nested<double>[][][] { new Nested<double>[][] { xRing } });
+                }
+
+                // Write y coordinates
+                var yRing = new Nested<double>[] {
+                    new Nested<double>(0),
+                    new Nested<double>(0),
+                    new Nested<double>(3),
+                    new Nested<double>(0)
+                };
+                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>())
+                {
+                    yWriter.WriteBatch(new Nested<double>[][][] { new Nested<double>[][] { yRing } });
+                }
+            }
+        }
+
+        // Now read it back
+        using (var file1 = new ParquetFileReader(fileName))
+        {
+            var geoParquet = file1.GetGeoMetadata();
+            Assert.That(geoParquet, Is.Not.Null);
+            Assert.That(geoParquet!.Version == "1.1.0");
+            Assert.That(geoParquet.Columns.First().Value.Encoding == "polygon");
+
+            var rowGroupReader = file1.RowGroup(0);
+            
+            // Read name
+            var nameReader = rowGroupReader.Column(0).LogicalReader<string>();
+            var names = nameReader.ReadAll(1);
+            Assert.That(names[0] == "Triangle");
+
+            // Read coordinates - each row contains one Polygon as Nested<double>[][]
+            var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>[][]>();
+            var xCoords2 = xReader.ReadAll(1);
+            Assert.That(xCoords2.Length, Is.EqualTo(1));  // 1 row
+            Assert.That(xCoords2[0].Length, Is.EqualTo(1));  // 1 ring
+            Assert.That(xCoords2[0][0].Length, Is.EqualTo(4));  // 4 vertices
+            Assert.That(xCoords2[0][0][0].Value, Is.EqualTo(0));
+            Assert.That(xCoords2[0][0][1].Value, Is.EqualTo(4));
+            Assert.That(xCoords2[0][0][2].Value, Is.EqualTo(2));
+            Assert.That(xCoords2[0][0][3].Value, Is.EqualTo(0));
+
+            var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>[][]>();
+            var yCoords2 = yReader.ReadAll(1);
+            Assert.That(yCoords2.Length, Is.EqualTo(1));  // 1 row
+            Assert.That(yCoords2[0].Length, Is.EqualTo(1));  // 1 ring
+            Assert.That(yCoords2[0][0].Length, Is.EqualTo(4));  // 4 vertices
+            Assert.That(yCoords2[0][0][0].Value, Is.EqualTo(0));
+            Assert.That(yCoords2[0][0][1].Value, Is.EqualTo(0));
+            Assert.That(yCoords2[0][0][2].Value, Is.EqualTo(3));
+            Assert.That(yCoords2[0][0][3].Value, Is.EqualTo(0));
+        }
     }
 }
 
