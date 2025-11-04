@@ -180,6 +180,34 @@ public class Tests
             "schema", Repetition.Required, new Node[] { nameNode, geometryNode });
     }
 
+    private static GroupNode CreateGeoArrowMultiPointSchema()
+    {
+        // Create schema for MultiPoint encoding as per GeoParquet spec
+        // MultiPoint is a list of points (x, y pairs)
+        var nameNode = new PrimitiveNode(
+            "name", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+        // Create the coordinate struct with x and y
+        var xNode = new PrimitiveNode(
+            "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+        var yNode = new PrimitiveNode(
+            "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+        
+        var xyNode = new GroupNode(
+            "xy", Repetition.Required, new Node[] { xNode, yNode });
+
+        // MultiPoint is a list of xy coordinates
+        var listNode = new GroupNode(
+            "list", Repetition.Repeated, new Node[] { xyNode });
+        
+        var geometryNode = new GroupNode(
+            "geometry", Repetition.Optional, new Node[] { listNode }, LogicalType.List());
+
+        // Root schema
+        return new GroupNode(
+            "schema", Repetition.Required, new Node[] { nameNode, geometryNode });
+    }
+
     private static GroupNode CreateGeoArrowPolygonSchema()
     {
         // Create schema for Polygon encoding as per GeoParquet spec
@@ -682,6 +710,149 @@ public class Tests
             Assert.That(yCoords2[0][0][1].Value, Is.EqualTo(0));
             Assert.That(yCoords2[0][0][2].Value, Is.EqualTo(3));
             Assert.That(yCoords2[0][0][3].Value, Is.EqualTo(0));
+        }
+    }
+
+    [Test]
+    public void WriteGeoParquetGeoArrowMultiPointFile()
+    {
+        var schema = CreateGeoArrowMultiPointSchema();
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Encoding = "multipoint";
+        geoColumn.Geometry_types.Add("MultiPoint");
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        var fileName = @"multipoints_geoarrow.parquet";
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+        {
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
+            {
+                // Write names
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+                {
+                    nameWriter.WriteBatch(new string[] { "MultiPoint1", "MultiPoint2" });
+                }
+
+                // Create MultiPoint geometries
+                // MultiPoint 1: (0,0), (1,1), (2,0)
+                var multiPoint1 = new MultiPoint(new Point[] {
+                    new Point(0, 0),
+                    new Point(1, 1),
+                    new Point(2, 0)
+                });
+
+                // MultiPoint 2: (5,5), (6,6)
+                var multiPoint2 = new MultiPoint(new Point[] {
+                    new Point(5, 5),
+                    new Point(6, 6)
+                });
+
+                // For MultiPoint, we need to write the list of points
+                // Each row contains one MultiPoint: Nested<double>[]
+                // WriteBatch takes array of rows: Nested<double>[][]
+                
+                // Extract x coordinates
+                var xCoords1 = multiPoint1.Geometries.Cast<Point>().Select(p => new Nested<double>(p.X)).ToArray();
+                var xCoords2 = multiPoint2.Geometries.Cast<Point>().Select(p => new Nested<double>(p.X)).ToArray();
+                
+                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
+                {
+                    xWriter.WriteBatch(new Nested<double>[][] { xCoords1, xCoords2 });
+                }
+
+                // Extract y coordinates
+                var yCoords1 = multiPoint1.Geometries.Cast<Point>().Select(p => new Nested<double>(p.Y)).ToArray();
+                var yCoords2 = multiPoint2.Geometries.Cast<Point>().Select(p => new Nested<double>(p.Y)).ToArray();
+                
+                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
+                {
+                    yWriter.WriteBatch(new Nested<double>[][] { yCoords1, yCoords2 });
+                }
+            }
+        }
+    }
+
+    [Test]
+    public void ReadGeoParquetGeoArrowMultiPointFile()
+    {
+        var fileName = @"test_geoarrow_multipoint_read.parquet";
+        
+        // First write a MultiPoint file
+        var schema = CreateGeoArrowMultiPointSchema();
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Encoding = "multipoint";
+        geoColumn.Geometry_types.Add("MultiPoint");
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+        {
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
+            {
+                // Write names
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+                {
+                    nameWriter.WriteBatch(new string[] { "MultiPoint1" });
+                }
+
+                // Write x coordinates for MultiPoint: (0,0), (1,1), (2,0)
+                var xCoords = new Nested<double>[] {
+                    new Nested<double>(0),
+                    new Nested<double>(1),
+                    new Nested<double>(2)
+                };
+                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
+                {
+                    xWriter.WriteBatch(new Nested<double>[][] { xCoords });
+                }
+
+                // Write y coordinates
+                var yCoords = new Nested<double>[] {
+                    new Nested<double>(0),
+                    new Nested<double>(1),
+                    new Nested<double>(0)
+                };
+                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
+                {
+                    yWriter.WriteBatch(new Nested<double>[][] { yCoords });
+                }
+            }
+        }
+
+        // Now read it back
+        using (var file1 = new ParquetFileReader(fileName))
+        {
+            var geoParquet = file1.GetGeoMetadata();
+            Assert.That(geoParquet, Is.Not.Null);
+            Assert.That(geoParquet!.Version == "1.1.0");
+            Assert.That(geoParquet.Columns.First().Value.Encoding == "multipoint");
+
+            var rowGroupReader = file1.RowGroup(0);
+            
+            // Read name
+            var nameReader = rowGroupReader.Column(0).LogicalReader<string>();
+            var names = nameReader.ReadAll(1);
+            Assert.That(names[0] == "MultiPoint1");
+
+            // Read coordinates - each row contains one MultiPoint as Nested<double>[]
+            var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>[]>();
+            var xCoords2 = xReader.ReadAll(1);
+            Assert.That(xCoords2.Length, Is.EqualTo(1));  // 1 row
+            Assert.That(xCoords2[0].Length, Is.EqualTo(3));  // 3 points in the multipoint
+            Assert.That(xCoords2[0][0].Value, Is.EqualTo(0));
+            Assert.That(xCoords2[0][1].Value, Is.EqualTo(1));
+            Assert.That(xCoords2[0][2].Value, Is.EqualTo(2));
+
+            var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>[]>();
+            var yCoords2 = yReader.ReadAll(1);
+            Assert.That(yCoords2.Length, Is.EqualTo(1));  // 1 row
+            Assert.That(yCoords2[0].Length, Is.EqualTo(3));  // 3 points in the multipoint
+            Assert.That(yCoords2[0][0].Value, Is.EqualTo(0));
+            Assert.That(yCoords2[0][1].Value, Is.EqualTo(1));
+            Assert.That(yCoords2[0][2].Value, Is.EqualTo(0));
         }
     }
 }
