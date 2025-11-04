@@ -1329,5 +1329,38 @@ public class Tests
             Assert.That(yCoords2[0][1][0][1].Value, Is.EqualTo(10));
         }
     }
+
+    [Test]
+    public void VerifyMultiPointMetadata()
+    {
+        using var reader = new ParquetFileReader("multipoints_geoarrow.parquet");
+        var geoMetadata = reader.GetGeoMetadata();
+        Assert.That(geoMetadata, Is.Not.Null);
+        Assert.That(geoMetadata!.Version, Is.EqualTo("1.1.0"));
+        Assert.That(geoMetadata.Columns.First().Value.Encoding, Is.EqualTo("multipoint"));
+        Assert.That(geoMetadata.Columns.First().Value.Geometry_types.First(), Is.EqualTo("MultiPoint"));
+    }
+
+    [Test]
+    public void VerifyMultiLineStringMetadata()
+    {
+        using var reader = new ParquetFileReader("multilinestrings_geoarrow.parquet");
+        var geoMetadata = reader.GetGeoMetadata();
+        Assert.That(geoMetadata, Is.Not.Null);
+        Assert.That(geoMetadata!.Version, Is.EqualTo("1.1.0"));
+        Assert.That(geoMetadata.Columns.First().Value.Encoding, Is.EqualTo("multilinestring"));
+        Assert.That(geoMetadata.Columns.First().Value.Geometry_types.First(), Is.EqualTo("MultiLineString"));
+    }
+
+    [Test]
+    public void VerifyMultiPolygonMetadata()
+    {
+        using var reader = new ParquetFileReader("multipolygons_geoarrow.parquet");
+        var geoMetadata = reader.GetGeoMetadata();
+        Assert.That(geoMetadata, Is.Not.Null);
+        Assert.That(geoMetadata!.Version, Is.EqualTo("1.1.0"));
+        Assert.That(geoMetadata.Columns.First().Value.Encoding, Is.EqualTo("multipolygon"));
+        Assert.That(geoMetadata.Columns.First().Value.Geometry_types.First(), Is.EqualTo("MultiPolygon"));
+    }
 }
 
