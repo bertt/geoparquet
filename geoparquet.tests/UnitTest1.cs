@@ -217,79 +217,68 @@ public class Tests
     [Test]
     public void ReadGeoParquetGeoArrowPointFile()
     {
-        var fileName = "test_geoarrow_point_read.parquet";
+        var fileName = @"test_geoarrow_point_read.parquet";
         
-        try
+        // First write a native Point file
+        var schema = CreateGeoArrowPointSchema();
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Encoding = "point";
+        geoColumn.Geometry_types.Add("Point");
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
         {
-            // First write a native Point file
-            var schema = CreateGeoArrowPointSchema();
-
-            var geoColumn = new GeoColumn();
-            geoColumn.Encoding = "point";
-            geoColumn.Geometry_types.Add("Point");
-            var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
-
-            var writerProperties = new WriterPropertiesBuilder().Build();
-            using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
             {
-                using (var rowGroup = parquetFileWriter.AppendRowGroup())
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
                 {
-                    using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
-                    {
-                        nameWriter.WriteBatch(new string[] { "London", "Derby" });
-                    }
+                    nameWriter.WriteBatch(new string[] { "London", "Derby" });
+                }
 
-                    // Write x coordinates as Nested<double>
-                    using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
-                    {
-                        xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(5), new Nested<double>(5.5) });
-                    }
+                // Write x coordinates as Nested<double>
+                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
+                {
+                    xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(5), new Nested<double>(5.5) });
+                }
                     
-                    // Write y coordinates as Nested<double>
-                    using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
-                    {
-                        yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(51), new Nested<double>(51) });
-                    }
+                // Write y coordinates as Nested<double>
+                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
+                {
+                    yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(51), new Nested<double>(51) });
                 }
             }
-
-            // Now read it back
-            var file1 = new ParquetFileReader(fileName);
-            var geoParquet = file1.GetGeoMetadata();
-            Assert.That(geoParquet, Is.Not.Null);
-            Assert.That(geoParquet!.Version == "1.1.0");
-            Assert.That(geoParquet.Columns.First().Value.Encoding == "point");
-
-            var rowGroupReader = file1.RowGroup(0);
-            
-            // Read city names
-            var cityReader = rowGroupReader.Column(0).LogicalReader<string>();
-            var cities = cityReader.ReadAll(2);
-            Assert.That(cities[0] == "London");
-            Assert.That(cities[1] == "Derby");
-
-            // Read x coordinates
-            var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>?>();
-            var xs = xReader.ReadAll(2);
-            Assert.That(xs.Length == 2);
-            Assert.That(xs[0]!.Value.Value == 5);
-            Assert.That(xs[1]!.Value.Value == 5.5);
-            
-            // Read y coordinates
-            var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>?>();
-            var ys = yReader.ReadAll(2);
-            Assert.That(ys.Length == 2);
-            Assert.That(ys[0]!.Value.Value == 51);
-            Assert.That(ys[1]!.Value.Value == 51);
         }
-        finally
-        {
-            // Clean up test file
-            if (File.Exists(fileName))
-            {
-                File.Delete(fileName);
-            }
-        }
+
+        // Now read it back
+        var file1 = new ParquetFileReader(fileName);
+        var geoParquet = file1.GetGeoMetadata();
+        Assert.That(geoParquet, Is.Not.Null);
+        Assert.That(geoParquet!.Version == "1.1.0");
+        Assert.That(geoParquet.Columns.First().Value.Encoding == "point");
+
+        var rowGroupReader = file1.RowGroup(0);
+            
+        // Read city names
+        var cityReader = rowGroupReader.Column(0).LogicalReader<string>();
+        var cities = cityReader.ReadAll(2);
+        Assert.That(cities[0] == "London");
+        Assert.That(cities[1] == "Derby");
+
+        // Read x coordinates
+        var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>?>();
+        var xs = xReader.ReadAll(2);
+        Assert.That(xs.Length == 2);
+        Assert.That(xs[0]!.Value.Value == 5);
+        Assert.That(xs[1]!.Value.Value == 5.5);
+            
+        // Read y coordinates
+        var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>?>();
+        var ys = yReader.ReadAll(2);
+        Assert.That(ys.Length == 2);
+        Assert.That(ys[0]!.Value.Value == 51);
+        Assert.That(ys[1]!.Value.Value == 51);
     }
 
     [Test]
