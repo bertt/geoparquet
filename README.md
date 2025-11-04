@@ -301,6 +301,85 @@ parquetFileWriter.Close();
 
 Result Parquet file can be visualized in QGIS as a geometry layer with LineString features.
 
+### Writing MultiPoint geometries with native encoding
+
+For writing MultiPoint geometries using native GeoParquet encoding, create a schema with a struct containing lists of x and y coordinates:
+
+```csharp
+using ParquetSharp;
+using ParquetSharp.Schema;
+using NetTopologySuite.Geometries;
+using System.Linq;
+
+// Create schema for MultiPoint geometry
+var nameNode = new PrimitiveNode(
+    "name", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+// Create the coordinate struct with x and y
+var xNode = new PrimitiveNode(
+    "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+var yNode = new PrimitiveNode(
+    "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+
+var xyNode = new GroupNode(
+    "xy", Repetition.Required, new Node[] { xNode, yNode });
+
+// MultiPoint is a list of xy coordinates
+var listNode = new GroupNode(
+    "list", Repetition.Repeated, new Node[] { xyNode });
+
+var geometryNode = new GroupNode(
+    "geometry", Repetition.Optional, new Node[] { listNode }, LogicalType.List());
+
+// Root schema
+var schema = new GroupNode(
+    "schema", Repetition.Required, new Node[] { nameNode, geometryNode });
+
+// Create GeoParquet metadata with native "multipoint" encoding
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = "multipoint";
+geoColumn.Geometry_types.Add("MultiPoint");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+// Write the file
+var writerProperties = new WriterPropertiesBuilder().Build();
+var parquetFileWriter = new ParquetFileWriter("multipoints.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+var rowGroup = parquetFileWriter.AppendRowGroup();
+
+// Write names
+var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
+nameWriter.WriteBatch(new string[] { "MultiPoint1", "MultiPoint2" });
+
+// Create MultiPoint geometries
+var multiPoint1 = new MultiPoint(new Point[] {
+    new Point(0, 0),
+    new Point(1, 1),
+    new Point(2, 0)
+});
+
+var multiPoint2 = new MultiPoint(new Point[] {
+    new Point(5, 5),
+    new Point(6, 6)
+});
+
+// Write MultiPoint geometries
+var xCoords1 = multiPoint1.Geometries.Cast<Point>().Select(p => new Nested<double>(p.X)).ToArray();
+var xCoords2 = multiPoint2.Geometries.Cast<Point>().Select(p => new Nested<double>(p.X)).ToArray();
+
+var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>();
+xWriter.WriteBatch(new Nested<double>[][] { xCoords1, xCoords2 });
+
+var yCoords1 = multiPoint1.Geometries.Cast<Point>().Select(p => new Nested<double>(p.Y)).ToArray();
+var yCoords2 = multiPoint2.Geometries.Cast<Point>().Select(p => new Nested<double>(p.Y)).ToArray();
+
+var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>();
+yWriter.WriteBatch(new Nested<double>[][] { yCoords1, yCoords2 });
+
+parquetFileWriter.Close();
+```
+
+Result Parquet file can be visualized in QGIS as a geometry layer with MultiPoint features.
+
 ### Writing Polygon geometries with native encoding
 
 For writing Polygon geometries using native GeoParquet encoding, create a schema with a struct containing lists of rings, where each ring is a list of x and y coordinates:
