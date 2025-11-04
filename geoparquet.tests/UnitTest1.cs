@@ -132,22 +132,20 @@ public class Tests
 
     private static GroupNode CreateGeoArrowPointSchema()
     {
-        // Create schema for GeoArrow Point structure
-        // The geometry column needs to be a List with a field named "xy"
+        // Create schema for native Point encoding as per GeoParquet spec
+        // The geometry column should be a struct with "x" and "y" fields
         var cityNode = new PrimitiveNode(
             "city", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
 
-        // For GeoArrow Point, the coordinates are stored in a field named "xy"
-        var xyNode = new PrimitiveNode(
-            "xy", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+        // For Point geometry, use separate x and y fields as per GeoParquet native encoding
+        var xNode = new PrimitiveNode(
+            "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+        var yNode = new PrimitiveNode(
+            "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
 
-        // The repeated group that contains the xy coordinates
-        var listNode = new GroupNode(
-            "list", Repetition.Repeated, new Node[] { xyNode });
-
-        // The geometry list container
+        // The geometry as a struct containing x and y
         var geometryNode = new GroupNode(
-            "geometry", Repetition.Optional, new Node[] { listNode }, LogicalType.List());
+            "geometry", Repetition.Optional, new Node[] { xNode, yNode });
 
         // Root schema
         return new GroupNode(
@@ -192,9 +190,8 @@ public class Tests
         var schema = CreateGeoArrowPointSchema();
 
         var geoColumn = new GeoColumn();
-        geoColumn.Encoding = "geoarrow.point";
+        geoColumn.Encoding = "point";
         geoColumn.Geometry_types.Add("Point");
-        geoColumn.Orientation = "counterclockwise";
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
         var writerProperties = new WriterPropertiesBuilder().Build();
@@ -206,13 +203,14 @@ public class Tests
 
         var geom0 = new Point(5, 51);
         var geom1 = new Point(5.5, 51);
-        // For a list column, we write double[] where each array contains the x, y coordinates
-        var pointsArray = new double[][] { new double[] { geom0.X, geom0.Y }, new double[] { geom1.X, geom1.Y } };
         
-        var geomColumn = rowGroup.NextColumn();
-        var writer = geomColumn.LogicalWriter<double[]>();
-
-        writer.WriteBatch(pointsArray);
+        // For struct-based Point geometry, write x and y as Nested<double> values
+        var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>();
+        xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.X), new Nested<double>(geom1.X) });
+        
+        var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>();
+        yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.Y), new Nested<double>(geom1.Y) });
+        
         parquetFileWriter.Close();
     }
 
@@ -223,11 +221,11 @@ public class Tests
         
         try
         {
-            // First write a GeoArrow Point file
+            // First write a native Point file
             var schema = CreateGeoArrowPointSchema();
 
             var geoColumn = new GeoColumn();
-            geoColumn.Encoding = "geoarrow.point";
+            geoColumn.Encoding = "point";
             geoColumn.Geometry_types.Add("Point");
             var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
@@ -241,10 +239,16 @@ public class Tests
                         nameWriter.WriteBatch(new string[] { "London", "Derby" });
                     }
 
-                    var pointsArray = new double[][] { new double[] { 5, 51 }, new double[] { 5.5, 51 } };
-                    using (var writer = rowGroup.NextColumn().LogicalWriter<double[]>())
+                    // Write x coordinates as Nested<double>
+                    using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
                     {
-                        writer.WriteBatch(pointsArray);
+                        xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(5), new Nested<double>(5.5) });
+                    }
+                    
+                    // Write y coordinates as Nested<double>
+                    using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
+                    {
+                        yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(51), new Nested<double>(51) });
                     }
                 }
             }
@@ -254,7 +258,7 @@ public class Tests
             var geoParquet = file1.GetGeoMetadata();
             Assert.That(geoParquet, Is.Not.Null);
             Assert.That(geoParquet!.Version == "1.1.0");
-            Assert.That(geoParquet.Columns.First().Value.Encoding == "geoarrow.point");
+            Assert.That(geoParquet.Columns.First().Value.Encoding == "point");
 
             var rowGroupReader = file1.RowGroup(0);
             
@@ -264,15 +268,19 @@ public class Tests
             Assert.That(cities[0] == "London");
             Assert.That(cities[1] == "Derby");
 
-            // Read geometry as double[]
-            var geometryReader = rowGroupReader.Column(1).LogicalReader<double[]>();
-            var geometries = geometryReader.ReadAll(2);
-            Assert.That(geometries.Length == 2);
-            Assert.That(geometries[0].Length == 2);
-            Assert.That(geometries[0][0] == 5);
-            Assert.That(geometries[0][1] == 51);
-            Assert.That(geometries[1][0] == 5.5);
-            Assert.That(geometries[1][1] == 51);
+            // Read x coordinates
+            var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>?>();
+            var xs = xReader.ReadAll(2);
+            Assert.That(xs.Length == 2);
+            Assert.That(xs[0]!.Value.Value == 5);
+            Assert.That(xs[1]!.Value.Value == 5.5);
+            
+            // Read y coordinates
+            var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>?>();
+            var ys = yReader.ReadAll(2);
+            Assert.That(ys.Length == 2);
+            Assert.That(ys[0]!.Value.Value == 51);
+            Assert.That(ys[1]!.Value.Value == 51);
         }
         finally
         {
