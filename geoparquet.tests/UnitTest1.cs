@@ -724,7 +724,7 @@ public class Tests
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
         var writerProperties = new WriterPropertiesBuilder().Build();
-        var fileName = @"d:\aaa\geoparquet\multipoints_geoarrow.parquet";
+        var fileName = @"multipoints_geoarrow.parquet";
         using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
         {
             using (var rowGroup = parquetFileWriter.AppendRowGroup())
