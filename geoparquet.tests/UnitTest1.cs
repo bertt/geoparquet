@@ -130,6 +130,28 @@ public class Tests
         return null;
     }
 
+    private static GroupNode CreateGeoArrowPointSchema()
+    {
+        // Create schema for native Point encoding as per GeoParquet spec
+        // The geometry column should be a struct with "x" and "y" fields
+        var cityNode = new PrimitiveNode(
+            "city", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+        // For Point geometry, use separate x and y fields as per GeoParquet native encoding
+        var xNode = new PrimitiveNode(
+            "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+        var yNode = new PrimitiveNode(
+            "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+
+        // The geometry as a struct containing x and y
+        var geometryNode = new GroupNode(
+            "geometry", Repetition.Optional, new Node[] { xNode, yNode });
+
+        // Root schema
+        return new GroupNode(
+            "schema", Repetition.Required, new Node[] { cityNode, geometryNode });
+    }
+
     [Test]
     public void WriteGeoParquetWkbFile()
     {
@@ -165,19 +187,15 @@ public class Tests
     [Test]
     public void WriteGeoParquetGeoArrowFile()
     {
-        var columns = new Column[]
-        {
-            new Column<string>("city"),
-            new Column<Double?[]>("geometry")
-        };
+        var schema = CreateGeoArrowPointSchema();
 
         var geoColumn = new GeoColumn();
-        geoColumn.Encoding = "geoarrow.point";
+        geoColumn.Encoding = "point";
         geoColumn.Geometry_types.Add("Point");
-        geoColumn.Orientation = "counterclockwise";
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
-        var parquetFileWriter = new ParquetFileWriter(@"cities_arrow1.parquet", columns, keyValueMetadata: geometadata);
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        var parquetFileWriter = new ParquetFileWriter(@"cities_arrow1.parquet", schema, writerProperties, keyValueMetadata: geometadata);
         var rowGroup = parquetFileWriter.AppendRowGroup();
 
         var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
@@ -185,16 +203,82 @@ public class Tests
 
         var geom0 = new Point(5, 51);
         var geom1 = new Point(5.5, 51);
-        var pointsArray = new double?[][] { new Double?[] { geom0.X, geom0.Y }, new Double?[] { geom1.X, geom1.Y } };
-        // todo add field 'xy' somewhere here
-        // type FixedSizeList.Name = "xy", "xyz" or "xyzm"
-        // Something with GroupNode 
-        // now it won't load in QGIS as geometry layer :-(
-        var geomColumn = rowGroup.NextColumn();
-        var writer = geomColumn.LogicalWriter<Double?[]>();
-
-        writer.WriteBatch(pointsArray);
+        
+        // For struct-based Point geometry, write x and y as Nested<double> values
+        var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>();
+        xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.X), new Nested<double>(geom1.X) });
+        
+        var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>();
+        yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.Y), new Nested<double>(geom1.Y) });
+        
         parquetFileWriter.Close();
+    }
+
+    [Test]
+    public void ReadGeoParquetGeoArrowPointFile()
+    {
+        var fileName = @"test_geoarrow_point_read.parquet";
+        
+        // First write a native Point file
+        var schema = CreateGeoArrowPointSchema();
+
+        var geoColumn = new GeoColumn();
+        geoColumn.Encoding = "point";
+        geoColumn.Geometry_types.Add("Point");
+        var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+        var writerProperties = new WriterPropertiesBuilder().Build();
+        using (var parquetFileWriter = new ParquetFileWriter(fileName, schema, writerProperties, keyValueMetadata: geometadata))
+        {
+            using (var rowGroup = parquetFileWriter.AppendRowGroup())
+            {
+                using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+                {
+                    nameWriter.WriteBatch(new string[] { "London", "Derby" });
+                }
+
+                // Write x coordinates as Nested<double>
+                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
+                {
+                    xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(5), new Nested<double>(5.5) });
+                }
+                    
+                // Write y coordinates as Nested<double>
+                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
+                {
+                    yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(51), new Nested<double>(51) });
+                }
+            }
+        }
+
+        // Now read it back
+        var file1 = new ParquetFileReader(fileName);
+        var geoParquet = file1.GetGeoMetadata();
+        Assert.That(geoParquet, Is.Not.Null);
+        Assert.That(geoParquet!.Version == "1.1.0");
+        Assert.That(geoParquet.Columns.First().Value.Encoding == "point");
+
+        var rowGroupReader = file1.RowGroup(0);
+            
+        // Read city names
+        var cityReader = rowGroupReader.Column(0).LogicalReader<string>();
+        var cities = cityReader.ReadAll(2);
+        Assert.That(cities[0] == "London");
+        Assert.That(cities[1] == "Derby");
+
+        // Read x coordinates
+        var xReader = rowGroupReader.Column(1).LogicalReader<Nested<double>?>();
+        var xs = xReader.ReadAll(2);
+        Assert.That(xs.Length == 2);
+        Assert.That(xs[0]!.Value.Value == 5);
+        Assert.That(xs[1]!.Value.Value == 5.5);
+            
+        // Read y coordinates
+        var yReader = rowGroupReader.Column(2).LogicalReader<Nested<double>?>();
+        var ys = yReader.ReadAll(2);
+        Assert.That(ys.Length == 2);
+        Assert.That(ys[0]!.Value.Value == 51);
+        Assert.That(ys[1]!.Value.Value == 51);
     }
 
     [Test]
