@@ -222,6 +222,183 @@ parquetFileWriter.Close();
 
 Result Parquet file can be visualized in QGIS as a geometry layer with Point features.
 
+### Writing LineString geometries with native encoding
+
+For writing LineString geometries using native GeoParquet encoding, create a schema with a struct containing lists of x and y coordinates:
+
+```csharp
+using ParquetSharp;
+using ParquetSharp.Schema;
+using NetTopologySuite.Geometries;
+using System.Linq;
+
+// Create schema for LineString geometry
+var nameNode = new PrimitiveNode(
+    "name", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+// Create the coordinate struct with x and y
+var xNode = new PrimitiveNode(
+    "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+var yNode = new PrimitiveNode(
+    "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+
+var xyNode = new GroupNode(
+    "xy", Repetition.Required, new Node[] { xNode, yNode });
+
+// LineString is a list of xy coordinates
+var listNode = new GroupNode(
+    "list", Repetition.Repeated, new Node[] { xyNode });
+
+var geometryNode = new GroupNode(
+    "geometry", Repetition.Optional, new Node[] { listNode }, LogicalType.List());
+
+// Root schema
+var schema = new GroupNode(
+    "schema", Repetition.Required, new Node[] { nameNode, geometryNode });
+
+// Create GeoParquet metadata with native "linestring" encoding
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = "linestring";
+geoColumn.Geometry_types.Add("LineString");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+// Write the file
+var writerProperties = new WriterPropertiesBuilder().Build();
+var parquetFileWriter = new ParquetFileWriter("linestrings.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+var rowGroup = parquetFileWriter.AppendRowGroup();
+
+// Write names
+var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
+nameWriter.WriteBatch(new string[] { "Line1", "Line2" });
+
+// Create LineString geometries
+var line1 = new LineString(new Coordinate[] {
+    new Coordinate(0, 0),
+    new Coordinate(1, 1),
+    new Coordinate(2, 0)
+});
+
+var line2 = new LineString(new Coordinate[] {
+    new Coordinate(5, 5),
+    new Coordinate(6, 6)
+});
+
+// Write LineString geometries
+var xCoords1 = line1.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+var xCoords2 = line2.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+
+var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>();
+xWriter.WriteBatch(new Nested<double>[][] { xCoords1, xCoords2 });
+
+var yCoords1 = line1.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+var yCoords2 = line2.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+
+var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>();
+yWriter.WriteBatch(new Nested<double>[][] { yCoords1, yCoords2 });
+
+parquetFileWriter.Close();
+```
+
+Result Parquet file can be visualized in QGIS as a geometry layer with LineString features.
+
+### Writing Polygon geometries with native encoding
+
+For writing Polygon geometries using native GeoParquet encoding, create a schema with a struct containing lists of rings, where each ring is a list of x and y coordinates:
+
+```csharp
+using ParquetSharp;
+using ParquetSharp.Schema;
+using NetTopologySuite.Geometries;
+using System.Linq;
+
+// Create schema for Polygon geometry
+var nameNode = new PrimitiveNode(
+    "name", Repetition.Optional, LogicalType.String(), PhysicalType.ByteArray);
+
+// Create the coordinate struct with x and y
+var xNode = new PrimitiveNode(
+    "x", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+var yNode = new PrimitiveNode(
+    "y", Repetition.Required, LogicalType.None(), PhysicalType.Double);
+
+var xyNode = new GroupNode(
+    "xy", Repetition.Required, new Node[] { xNode, yNode });
+
+// A ring is a list of xy coordinates
+var ringListNode = new GroupNode(
+    "list", Repetition.Repeated, new Node[] { xyNode });
+
+var ringNode = new GroupNode(
+    "element", Repetition.Required, new Node[] { ringListNode }, LogicalType.List());
+
+// Polygon is a list of rings
+var polygonListNode = new GroupNode(
+    "list", Repetition.Repeated, new Node[] { ringNode });
+
+var geometryNode = new GroupNode(
+    "geometry", Repetition.Optional, new Node[] { polygonListNode }, LogicalType.List());
+
+// Root schema
+var schema = new GroupNode(
+    "schema", Repetition.Required, new Node[] { nameNode, geometryNode });
+
+// Create GeoParquet metadata with native "polygon" encoding
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = "polygon";
+geoColumn.Geometry_types.Add("Polygon");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+// Write the file
+var writerProperties = new WriterPropertiesBuilder().Build();
+var parquetFileWriter = new ParquetFileWriter("polygons.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+var rowGroup = parquetFileWriter.AppendRowGroup();
+
+// Write names
+var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
+nameWriter.WriteBatch(new string[] { "Polygon1", "Polygon2" });
+
+// Create Polygon geometries
+var polygon1 = new Polygon(new LinearRing(new Coordinate[] {
+    new Coordinate(0, 0),
+    new Coordinate(4, 0),
+    new Coordinate(2, 3),
+    new Coordinate(0, 0)  // closing coordinate
+}));
+
+var polygon2 = new Polygon(new LinearRing(new Coordinate[] {
+    new Coordinate(10, 10),
+    new Coordinate(14, 10),
+    new Coordinate(14, 14),
+    new Coordinate(10, 14),
+    new Coordinate(10, 10)  // closing coordinate
+}));
+
+// Write Polygon geometries
+var polygon1XRing = polygon1.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+var polygon2XRing = polygon2.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
+
+var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>();
+xWriter.WriteBatch(new Nested<double>[][][] { 
+    new Nested<double>[][] { polygon1XRing },  // Polygon 1 with 1 ring
+    new Nested<double>[][] { polygon2XRing }   // Polygon 2 with 1 ring
+});
+
+var polygon1YRing = polygon1.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+var polygon2YRing = polygon2.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
+
+var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>();
+yWriter.WriteBatch(new Nested<double>[][][] { 
+    new Nested<double>[][] { polygon1YRing },  // Polygon 1 with 1 ring
+    new Nested<double>[][] { polygon2YRing }   // Polygon 2 with 1 ring
+});
+
+parquetFileWriter.Close();
+```
+
+Result Parquet file can be visualized in QGIS as a geometry layer with Polygon features.
+
+See [QGIS_TESTING.md](QGIS_TESTING.md) for instructions on how to verify the generated files in QGIS.
+
 ## Dependencies
 
 - ParquetSharp 15 https://github.com/G-Research/ParquetSharp
