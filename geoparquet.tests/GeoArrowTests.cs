@@ -70,7 +70,7 @@ public class GeoArrowTests
         var geom1 = new Point(5.5, 51);
         
         // Use the extension method to write points
-        rowGroup.WriteGeoArrowPoints(new[] { geom0, geom1 });
+        rowGroup.WritePoints(new[] { geom0, geom1 });
     }
 
     [Test]
@@ -97,7 +97,7 @@ public class GeoArrowTests
                 }
 
                 // Use the extension method to write points
-                rowGroup.WriteGeoArrowPoints(new[] { new Point(5, 51), new Point(5.5, 51) });
+                rowGroup.WritePoints(new[] { new Point(5, 51), new Point(5.5, 51) });
             }
         }
 
@@ -203,7 +203,7 @@ public class GeoArrowTests
                 });
 
                 // Use the extension method to write linestrings
-                rowGroup.WriteGeoArrowLineStrings(new[] { line1, line2 });
+                rowGroup.WriteLineStrings(new[] { line1, line2 });
             }
         }
     }
@@ -249,7 +249,7 @@ public class GeoArrowTests
                 }));
 
                 // Use the extension method to write polygons
-                rowGroup.WriteGeoArrowPolygons(new[] { polygon1, polygon2 });
+                rowGroup.WritePolygons(new[] { polygon1, polygon2 });
             }
         }
     }

@@ -44,7 +44,7 @@ public static class GeoParquetExtensions
     /// </summary>
     /// <param name="rowGroupWriter">The row group writer to write to.</param>
     /// <param name="points">Array of Point geometries to write.</param>
-    public static void WriteGeoArrowPoints(this RowGroupWriter rowGroupWriter, Point[] points)
+    public static void WritePoints(this RowGroupWriter rowGroupWriter, Point[] points)
     {
         // Write x coordinates as Nested<double>
         using (var xWriter = rowGroupWriter.NextColumn().LogicalWriter<Nested<double>?>())
@@ -67,7 +67,7 @@ public static class GeoParquetExtensions
     /// </summary>
     /// <param name="rowGroupWriter">The row group writer to write to.</param>
     /// <param name="lineStrings">Array of LineString geometries to write.</param>
-    public static void WriteGeoArrowLineStrings(this RowGroupWriter rowGroupWriter, LineString[] lineStrings)
+    public static void WriteLineStrings(this RowGroupWriter rowGroupWriter, LineString[] lineStrings)
     {
         // Write x coordinates - each LineString is an array of coordinates
         using (var xWriter = rowGroupWriter.NextColumn().LogicalWriter<Nested<double>[]>())
@@ -94,7 +94,7 @@ public static class GeoParquetExtensions
     /// </summary>
     /// <param name="rowGroupWriter">The row group writer to write to.</param>
     /// <param name="polygons">Array of Polygon geometries to write.</param>
-    public static void WriteGeoArrowPolygons(this RowGroupWriter rowGroupWriter, Polygon[] polygons)
+    public static void WritePolygons(this RowGroupWriter rowGroupWriter, Polygon[] polygons)
     {
         // Write x coordinates - each Polygon is an array of rings, each ring is an array of coordinates
         using (var xWriter = rowGroupWriter.NextColumn().LogicalWriter<Nested<double>[][]>())
