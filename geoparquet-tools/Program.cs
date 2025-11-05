@@ -48,14 +48,9 @@ internal class Program
 
                 if (geoParquet != null)
                 {
-                    // Format the JSON for better readability
-                    var jDoc = JsonDocument.Parse(geoParquet);
-                    using var stream = new MemoryStream();
-                    using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
-                    jDoc.WriteTo(writer);
-                    writer.Flush();
-                    var formatted = System.Text.Encoding.UTF8.GetString(stream.ToArray());
-                    Console.WriteLine("GeoMetaData: " + formatted);
+                    var jDoc= JsonDocument.Parse(geoParquet);
+                    var formatted = JsonSerializer.Serialize(jDoc, new JsonSerializerOptions { WriteIndented = true });
+                    Console.Write("GeoMetaData: " + formatted);
                 }
                 else
                 {
