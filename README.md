@@ -164,17 +164,125 @@ geometryWriter.WriteBatch(wkbBytes);
 parquetFileWriter.Close();
   ```
 
-### Writing geometries with native encoding
+### Writing geometries with native encoding (GeoArrow)
 
-See unit tests.
+The library provides helper extension methods to simplify writing Point, LineString, and Polygon geometries with GeoArrow encoding.
 
-Suppported encodings:
+#### Using GeometryEncoding constants
 
-- Point - MultiPoint 
+Use the `GeometryEncoding` class to specify encoding types:
 
-- Line
+```csharp
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = GeometryEncoding.Point;  // or WKB, LineString, Polygon, MultiPoint, etc.
+geoColumn.Geometry_types.Add("Point");
+```
 
+#### Writing Points
+
+```csharp
+var schema = GeoArrowSchemas.CreateGeoArrowPointSchema();
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = GeometryEncoding.Point;
+geoColumn.Geometry_types.Add("Point");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+var writerProperties = new WriterPropertiesBuilder().Build();
+using var parquetFileWriter = new ParquetFileWriter("points.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+using var rowGroup = parquetFileWriter.AppendRowGroup();
+
+// Write city names
+using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+{
+    nameWriter.WriteBatch(new string[] { "London", "Derby" });
+}
+
+// Write points using the extension method
+var points = new[] { new Point(5, 51), new Point(5.5, 51) };
+rowGroup.WritePoints(points);
+```
+
+#### Writing LineStrings
+
+```csharp
+var schema = GeoArrowSchemas.CreateGeoArrowLineStringSchema();
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = GeometryEncoding.LineString;
+geoColumn.Geometry_types.Add("LineString");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+var writerProperties = new WriterPropertiesBuilder().Build();
+using var parquetFileWriter = new ParquetFileWriter("lines.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+using var rowGroup = parquetFileWriter.AppendRowGroup();
+
+// Write names
+using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+{
+    nameWriter.WriteBatch(new string[] { "Line1", "Line2" });
+}
+
+// Create LineString geometries
+var line1 = new LineString(new Coordinate[] {
+    new Coordinate(0, 0),
+    new Coordinate(1, 1),
+    new Coordinate(2, 0)
+});
+
+var line2 = new LineString(new Coordinate[] {
+    new Coordinate(5, 5),
+    new Coordinate(6, 6)
+});
+
+// Write linestrings using the extension method
+rowGroup.WriteLineStrings(new[] { line1, line2 });
+```
+
+#### Writing Polygons
+
+```csharp
+var schema = GeoArrowSchemas.CreateGeoArrowPolygonSchema();
+var geoColumn = new GeoColumn();
+geoColumn.Encoding = GeometryEncoding.Polygon;
+geoColumn.Geometry_types.Add("Polygon");
+var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
+
+var writerProperties = new WriterPropertiesBuilder().Build();
+using var parquetFileWriter = new ParquetFileWriter("polygons.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+using var rowGroup = parquetFileWriter.AppendRowGroup();
+
+// Write names
+using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+{
+    nameWriter.WriteBatch(new string[] { "Polygon1", "Polygon2" });
+}
+
+// Create Polygon geometries (triangle and square)
+var polygon1 = new Polygon(new LinearRing(new Coordinate[] {
+    new Coordinate(0, 0),
+    new Coordinate(4, 0),
+    new Coordinate(2, 3),
+    new Coordinate(0, 0)  // closing coordinate
+}));
+
+var polygon2 = new Polygon(new LinearRing(new Coordinate[] {
+    new Coordinate(10, 10),
+    new Coordinate(14, 10),
+    new Coordinate(14, 14),
+    new Coordinate(10, 14),
+    new Coordinate(10, 10)  // closing coordinate
+}));
+
+// Write polygons using the extension method
+rowGroup.WritePolygons(new[] { polygon1, polygon2 });
+```
+
+Supported GeoArrow encodings:
+
+- Point
+- LineString
 - Polygon
+- MultiPoint
+- MultiPolygon
 
 ## Dependencies
 
