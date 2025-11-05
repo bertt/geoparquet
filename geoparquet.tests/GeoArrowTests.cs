@@ -10,7 +10,7 @@ public class GeoArrowTests
     public void ReadGeoParquetArrowPolygonFile()
     {
         var file = "testfixtures/gemeenten2016_arrow.parquet";
-        var file1 = new ParquetFileReader(file);
+        using var file1 = new ParquetFileReader(file);
         var geoParquet = file1.GetGeoMetadata();
         if (geoParquet != null)
         {
@@ -47,23 +47,27 @@ public class GeoArrowTests
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
         var writerProperties = new WriterPropertiesBuilder().Build();
-        var parquetFileWriter = new ParquetFileWriter(@"cities_arrow1.parquet", schema, writerProperties, keyValueMetadata: geometadata);
-        var rowGroup = parquetFileWriter.AppendRowGroup();
+        using var parquetFileWriter = new ParquetFileWriter(@"cities_arrow1.parquet", schema, writerProperties, keyValueMetadata: geometadata);
+        using var rowGroup = parquetFileWriter.AppendRowGroup();
 
-        var nameWriter = rowGroup.NextColumn().LogicalWriter<String>();
-        nameWriter.WriteBatch(new string[] { "London", "Derby" });
+        using (var nameWriter = rowGroup.NextColumn().LogicalWriter<String>())
+        {
+            nameWriter.WriteBatch(new string[] { "London", "Derby" });
+        }
 
         var geom0 = new Point(5, 51);
         var geom1 = new Point(5.5, 51);
         
         // For struct-based Point geometry, write x and y as Nested<double> values
-        var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>();
-        xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.X), new Nested<double>(geom1.X) });
+        using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
+        {
+            xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.X), new Nested<double>(geom1.X) });
+        }
         
-        var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>();
-        yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.Y), new Nested<double>(geom1.Y) });
-        
-        parquetFileWriter.Close();
+        using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
+        {
+            yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.Y), new Nested<double>(geom1.Y) });
+        }
     }
 
     [Test]
@@ -104,7 +108,7 @@ public class GeoArrowTests
         }
 
         // Now read it back
-        var file1 = new ParquetFileReader(fileName);
+        using var file1 = new ParquetFileReader(fileName);
         var geoParquet = file1.GetGeoMetadata();
         Assert.That(geoParquet, Is.Not.Null);
         Assert.That(geoParquet!.Version == "1.1.0");
@@ -154,7 +158,7 @@ public class GeoArrowTests
         var propertiesBuilder = new WriterPropertiesBuilder();
         propertiesBuilder.Compression(Compression.Snappy);
         var writerProperties = propertiesBuilder.Build();
-        var fileWriter = new ParquetFileWriter(@"objects.parquet", schema7, writerProperties);
+        using var fileWriter = new ParquetFileWriter(@"objects.parquet", schema7, writerProperties);
 
         var messages = new Nested<string?>?[]
         {
@@ -162,12 +166,10 @@ public class GeoArrowTests
             new Nested<string?>("Derby")
         };
 
-        var rowGroupWriter = fileWriter.AppendRowGroup();
+        using var rowGroupWriter = fileWriter.AppendRowGroup();
 
-        var messagesWriter = rowGroupWriter.NextColumn().LogicalWriter<string>();
+        using var messagesWriter = rowGroupWriter.NextColumn().LogicalWriter<string>();
         messagesWriter.WriteBatch(new string[] { "London", "Derby" });
-
-        fileWriter.Close();
     }
 
     [Test]
