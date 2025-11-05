@@ -53,7 +53,7 @@ public class GeoArrowTests
         var schema = GeoArrowSchemas.CreateGeoArrowPointSchema();
 
         var geoColumn = new GeoColumn();
-        geoColumn.Encoding = "point";
+        geoColumn.Encoding = GeometryEncoding.Point;
         geoColumn.Geometry_types.Add("Point");
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
@@ -82,7 +82,7 @@ public class GeoArrowTests
         var schema = GeoArrowSchemas.CreateGeoArrowPointSchema();
 
         var geoColumn = new GeoColumn();
-        geoColumn.Encoding = "point";
+        geoColumn.Encoding = GeometryEncoding.Point;
         geoColumn.Geometry_types.Add("Point");
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
@@ -153,12 +153,6 @@ public class GeoArrowTests
         propertiesBuilder.Compression(Compression.Snappy);
         var writerProperties = propertiesBuilder.Build();
         using var fileWriter = new ParquetFileWriter(@"objects.parquet", schema7, writerProperties);
-
-        var messages = new Nested<string?>?[]
-        {
-            new Nested<string?>("London"),
-            new Nested<string?>("Derby")
-        };
 
         using var rowGroupWriter = fileWriter.AppendRowGroup();
 
@@ -308,7 +302,7 @@ public class GeoArrowTests
             var geoParquet = file1.GetGeoMetadata();
             Assert.That(geoParquet, Is.Not.Null);
             Assert.That(geoParquet!.Version == "1.1.0");
-            Assert.That(geoParquet.Columns.First().Value.Encoding == "linestring");
+            Assert.That(geoParquet.Columns.First().Value.Encoding == GeometryEncoding.LineString);
 
             var rowGroupReader = file1.RowGroup(0);
             
@@ -430,7 +424,7 @@ public class GeoArrowTests
         var schema = GeoArrowSchemas.CreateGeoArrowMultiPointSchema();
 
         var geoColumn = new GeoColumn();
-        geoColumn.Encoding = "multipoint";
+        geoColumn.Encoding = GeometryEncoding.MultiPoint;
         geoColumn.Geometry_types.Add("MultiPoint");
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
@@ -494,7 +488,7 @@ public class GeoArrowTests
         var schema = GeoArrowSchemas.CreateGeoArrowMultiPointSchema();
 
         var geoColumn = new GeoColumn();
-        geoColumn.Encoding = "multipoint";
+        geoColumn.Encoding = GeometryEncoding.MultiPoint;
         geoColumn.Geometry_types.Add("MultiPoint");
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
@@ -539,7 +533,7 @@ public class GeoArrowTests
             var geoParquet = file1.GetGeoMetadata();
             Assert.That(geoParquet, Is.Not.Null);
             Assert.That(geoParquet!.Version == "1.1.0");
-            Assert.That(geoParquet.Columns.First().Value.Encoding == "multipoint");
+            Assert.That(geoParquet.Columns.First().Value.Encoding == GeometryEncoding.MultiPoint);
 
             var rowGroupReader = file1.RowGroup(0);
             

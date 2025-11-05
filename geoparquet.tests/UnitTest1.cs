@@ -50,7 +50,7 @@ public class Tests
         if(geoParquet != null)
         {
             Assert.That(geoParquet.Version == "1.0.0-beta.1");
-            Assert.That(geoParquet.Columns.First().Value.Encoding == "WKB");
+            Assert.That(geoParquet.Columns.First().Value.Encoding == GeometryEncoding.WKB);
 
             var rowGroupReader = file1.RowGroup(0);
             var gemName = rowGroupReader.Column(3).LogicalReader<String>().First();
@@ -81,7 +81,7 @@ public class Tests
         };
 
         var geoColumn = new GeoColumn();
-        geoColumn.Encoding = "WKB";
+        geoColumn.Encoding = GeometryEncoding.WKB;
         geoColumn.Geometry_types.Add("Point");
         var geometadata = GeoMetadata.GetGeoMetadata(geoColumn);
 
