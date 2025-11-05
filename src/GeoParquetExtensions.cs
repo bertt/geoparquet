@@ -20,4 +20,20 @@ public static class GeoParquetExtensions
         }
         return null;
     }
+
+    public static int? GetColumnId(this RowGroupReader rowGroupReader, string columnName)
+    {
+        var numColumns = rowGroupReader.MetaData.NumColumns;
+
+        for (var i = 0; i < numColumns; i++)
+        {
+            var name = rowGroupReader.MetaData.Schema.Column(i).Name;
+            if (name == columnName)
+            {
+                return i;
+            }
+        }
+
+        return null;
+    }
 }
