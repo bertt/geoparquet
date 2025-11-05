@@ -202,27 +202,8 @@ public class GeoArrowTests
                     new Coordinate(6, 6)
                 });
 
-                // For LineString, we need to write the list of coordinates
-                // Each row contains one LineString: Nested<double>[]
-                // WriteBatch takes array of rows: Nested<double>[][]
-                
-                // Extract x coordinates
-                var xCoords1 = line1.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
-                var xCoords2 = line2.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
-                
-                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
-                {
-                    xWriter.WriteBatch(new Nested<double>[][] { xCoords1, xCoords2 });
-                }
-
-                // Extract y coordinates
-                var yCoords1 = line1.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
-                var yCoords2 = line2.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
-                
-                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[]>())
-                {
-                    yWriter.WriteBatch(new Nested<double>[][] { yCoords1, yCoords2 });
-                }
+                // Use the extension method to write linestrings
+                rowGroup.WriteGeoArrowLineStrings(new[] { line1, line2 });
             }
         }
     }
@@ -267,35 +248,8 @@ public class GeoArrowTests
                     new Coordinate(10, 10)  // closing coordinate
                 }));
 
-                // For Polygon, we need to write list of rings, each ring is a list of coordinates
-                // Each row contains one Polygon: Nested<double>[][] (rings x coordinates)
-                // WriteBatch takes array of rows: Nested<double>[][][] (rows x rings x coordinates)
-                
-                // Extract x coordinates for polygon1 - it has 1 ring (exterior ring)
-                var polygon1XRing = polygon1.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
-                
-                // Extract x coordinates for polygon2 - it has 1 ring (exterior ring)
-                var polygon2XRing = polygon2.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.X)).ToArray();
-                
-                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>())
-                {
-                    xWriter.WriteBatch(new Nested<double>[][][] { 
-                        new Nested<double>[][] { polygon1XRing },  // Polygon 1 with 1 ring
-                        new Nested<double>[][] { polygon2XRing }   // Polygon 2 with 1 ring
-                    });
-                }
-
-                // Extract y coordinates
-                var polygon1YRing = polygon1.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
-                var polygon2YRing = polygon2.ExteriorRing.Coordinates.Select(c => new Nested<double>(c.Y)).ToArray();
-                
-                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>[][]>())
-                {
-                    yWriter.WriteBatch(new Nested<double>[][][] { 
-                        new Nested<double>[][] { polygon1YRing },  // Polygon 1 with 1 ring
-                        new Nested<double>[][] { polygon2YRing }   // Polygon 2 with 1 ring
-                    });
-                }
+                // Use the extension method to write polygons
+                rowGroup.WriteGeoArrowPolygons(new[] { polygon1, polygon2 });
             }
         }
     }
