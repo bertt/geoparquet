@@ -69,16 +69,8 @@ public class GeoArrowTests
         var geom0 = new Point(5, 51);
         var geom1 = new Point(5.5, 51);
         
-        // For struct-based Point geometry, write x and y as Nested<double> values
-        using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
-        {
-            xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.X), new Nested<double>(geom1.X) });
-        }
-        
-        using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
-        {
-            yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(geom0.Y), new Nested<double>(geom1.Y) });
-        }
+        // Use the extension method to write points
+        rowGroup.WriteGeoArrowPoints(new[] { geom0, geom1 });
     }
 
     [Test]
@@ -104,17 +96,8 @@ public class GeoArrowTests
                     nameWriter.WriteBatch(new string[] { "London", "Derby" });
                 }
 
-                // Write x coordinates as Nested<double>
-                using (var xWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
-                {
-                    xWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(5), new Nested<double>(5.5) });
-                }
-                    
-                // Write y coordinates as Nested<double>
-                using (var yWriter = rowGroup.NextColumn().LogicalWriter<Nested<double>?>())
-                {
-                    yWriter.WriteBatch(new Nested<double>?[] { new Nested<double>(51), new Nested<double>(51) });
-                }
+                // Use the extension method to write points
+                rowGroup.WriteGeoArrowPoints(new[] { new Point(5, 51), new Point(5.5, 51) });
             }
         }
 

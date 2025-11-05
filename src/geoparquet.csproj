@@ -30,6 +30,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<PackageReference Include="NetTopologySuite" Version="2.6.0" />
 		<PackageReference Include="OneOf" Version="3.0.271" />
 		<PackageReference Include="ParquetSharp" Version="21.0.0" />
 	</ItemGroup>
